@@ -19,4 +19,4 @@ acknowledge reports within 3 business days.
 - CI runs `pip-audit`, `npm audit`, CodeQL, gitleaks and Trivy image scans.
 - Release images are built with SBOM + provenance and signed keylessly with Sigstore cosign.
   Verify with:
-  `cosign verify ghcr.io/OWNER/my-path-api@<digest> --certificate-identity-regexp 'https://github.com/OWNER/my-path/.*' --certificate-oidc-issuer https://token.actions.githubusercontent.com`
+  `cosign verify ghcr.io/kgervin/my-path-api@<digest> --certificate-identity-regexp 'https://github.com/kgervin/my-path/.*' --certificate-oidc-issuer https://token.actions.githubusercontent.com`

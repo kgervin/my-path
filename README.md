@@ -1,7 +1,7 @@
 # My Path
 
-[![CI](https://github.com/OWNER/my-path/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/my-path/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/OWNER/my-path/actions/workflows/codeql.yml/badge.svg)](https://github.com/OWNER/my-path/actions/workflows/codeql.yml)
+[![CI](https://github.com/kgervin/my-path/actions/workflows/ci.yml/badge.svg)](https://github.com/kgervin/my-path/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/kgervin/my-path/actions/workflows/codeql.yml/badge.svg)](https://github.com/kgervin/my-path/actions/workflows/codeql.yml)
 
 My Path helps ASU Online success coaches find students with **small, fixable barriers**
 (holds, small balances, failed payments, missing aid documents) **before the drop date**.
