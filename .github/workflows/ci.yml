@@ -40,7 +40,7 @@ jobs:
           MY_PATH_DATABASE_URL: sqlite+aiosqlite:///./ci.db
         run: uv run alembic upgrade head && uv run alembic check
       - name: Dependency audit
-        run: uvx pip-audit --strict --progress-spinner off -r <(uv export --frozen --no-dev --no-hashes)
+        run: uvx pip-audit --strict --progress-spinner off -r <(uv export --frozen --no-dev --no-hashes --no-emit-project)
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -130,6 +130,5 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Scan full git history with gitleaks
+        run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.3 git /repo --redact --verbose

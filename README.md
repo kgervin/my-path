@@ -82,7 +82,7 @@ docs/        Architecture, ADRs, SRE (SLOs, runbook, incidents), UX and accessib
 | Tests | pytest (≥90% coverage), Vitest + Testing Library (≥80%) with axe on every page |
 | End to end | Playwright on phone + desktop, axe WCAG 2.2 AA scan, no horizontal scroll |
 | Schema | `alembic check` fails if models and migrations drift |
-| Security | CodeQL, gitleaks, pip-audit, npm audit, Trivy image scan, hadolint |
+| Security | gitleaks, pip-audit, npm audit, Trivy image scan, hadolint; CodeQL when the repo is public or `CODE_SCANNING_ENABLED=true` (needs GitHub Code Security on private repos) |
 | Infra | kubeconform on rendered manifests, `promtool` rule checks and alert unit tests |
 | Supply chain | Dependabot, SBOM + provenance, cosign-signed images, digest-pinned deploys |
 
