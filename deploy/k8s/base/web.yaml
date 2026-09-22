@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-path-web
+  labels: { app.kubernetes.io/name: my-path-web, app.kubernetes.io/component: web }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+  selector:
+    matchLabels: { app.kubernetes.io/name: my-path-web }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: my-path-web, app.kubernetes.io/component: web }
+    spec:
+      serviceAccountName: my-path
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: web
+          image: my-path-web
+          ports: [{ name: http, containerPort: 8080 }]
+          env:
+            - { name: API_UPSTREAM, value: "http://my-path-api:8000" }
+          livenessProbe:
+            httpGet: { path: /nginx-health, port: http }
+          readinessProbe:
+            httpGet: { path: /nginx-health, port: http }
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits: { memory: 128Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: nginx-conf, mountPath: /etc/nginx/conf.d }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - { name: nginx-conf, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-path-web
+  labels: { app.kubernetes.io/name: my-path-web }
+spec:
+  selector: { app.kubernetes.io/name: my-path-web }
+  ports: [{ name: http, port: 80, targetPort: http }]

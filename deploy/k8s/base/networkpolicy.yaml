@@ -1,0 +1,45 @@
+# Default deny, then allow only: ingress controller -> web, web -> api, api -> DNS/DB/LLM.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: my-path-web
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/name: my-path-web }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - ports: [{ port: 8080 }]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels: { app.kubernetes.io/name: my-path-api }
+      ports: [{ port: 8000 }]
+    - ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: my-path-api
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/name: my-path-api }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app.kubernetes.io/name: my-path-web }
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: monitoring }
+      ports: [{ port: 8000 }]
+  egress:
+    - ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+    - ports: [{ port: 5432 }] # PostgreSQL
+    - ports: [{ port: 443 }] # LLM endpoint (HTTPS)

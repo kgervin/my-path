@@ -1,0 +1,89 @@
+# Build, scan, sign and publish images on every push to main (and on version tags),
+# then promote: staging automatically, production behind a required-reviewer environment.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  api:
+    uses: ./.github/workflows/_image.yml
+    permissions: { contents: read, packages: write, id-token: write, security-events: write }
+    with: { component: api, context: backend }
+
+  web:
+    uses: ./.github/workflows/_image.yml
+    permissions: { contents: read, packages: write, id-token: write, security-events: write }
+    with: { component: web, context: frontend }
+
+  deploy-staging:
+    name: Deploy to staging
+    needs: [api, web]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v5
+      - name: Render manifests pinned to image digests
+        run: |
+          cd deploy/k8s/overlays/staging
+          kustomize edit set image \
+            my-path-api=ghcr.io/${{ github.repository_owner }}/my-path-api@${{ needs.api.outputs.digest }} \
+            my-path-web=ghcr.io/${{ github.repository_owner }}/my-path-web@${{ needs.web.outputs.digest }}
+          kustomize build . > ../../../../rendered-staging.yaml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rendered-staging
+          path: rendered-staging.yaml
+      # Apply step is cluster-specific. With GitOps (Argo CD / Flux), commit the rendered digest
+      # to the environment repo instead. With direct access, configure KUBECONFIG as an
+      # environment secret and run: kubectl apply -f rendered-staging.yaml && kubectl rollout status ...
+      - name: Apply
+        if: ${{ vars.STAGING_DEPLOY_ENABLED == 'true' }}
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+        run: |
+          echo "$KUBECONFIG_DATA" > kubeconfig && export KUBECONFIG=$PWD/kubeconfig
+          kubectl apply -f rendered-staging.yaml
+          kubectl -n my-path-staging wait --for=condition=complete job/my-path-migrate --timeout=5m
+          kubectl -n my-path-staging rollout status deploy/my-path-api --timeout=5m
+          kubectl -n my-path-staging rollout status deploy/my-path-web --timeout=5m
+
+  deploy-production:
+    name: Deploy to production
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [api, web, deploy-staging]
+    runs-on: ubuntu-latest
+    environment: production # configure required reviewers in repo settings
+    steps:
+      - uses: actions/checkout@v5
+      - name: Render manifests pinned to image digests
+        run: |
+          cd deploy/k8s/overlays/production
+          kustomize edit set image \
+            my-path-api=ghcr.io/${{ github.repository_owner }}/my-path-api@${{ needs.api.outputs.digest }} \
+            my-path-web=ghcr.io/${{ github.repository_owner }}/my-path-web@${{ needs.web.outputs.digest }}
+          kustomize build . > ../../../../rendered-production.yaml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rendered-production
+          path: rendered-production.yaml
+      - name: Apply
+        if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+        run: |
+          echo "$KUBECONFIG_DATA" > kubeconfig && export KUBECONFIG=$PWD/kubeconfig
+          kubectl apply -f rendered-production.yaml
+          kubectl -n my-path wait --for=condition=complete job/my-path-migrate --timeout=5m
+          kubectl -n my-path rollout status deploy/my-path-api --timeout=5m
+          kubectl -n my-path rollout status deploy/my-path-web --timeout=5m

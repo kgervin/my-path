@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (lint, types, tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --frozen
+      - name: Format
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check --output-format=github .
+      - name: Types
+        run: uv run mypy src tests
+      - name: Tests (coverage gate 90%)
+        run: uv run pytest --cov-report=xml
+      - name: Migrations match models
+        env:
+          MY_PATH_DATABASE_URL: sqlite+aiosqlite:///./ci.db
+        run: uv run alembic upgrade head && uv run alembic check
+      - name: Dependency audit
+        run: uvx pip-audit --strict --progress-spinner off -r <(uv export --frozen --no-dev --no-hashes)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+
+  frontend:
+    name: Frontend (lint, types, tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run format:check
+      - name: Lint (incl. jsx-a11y)
+        run: npm run lint
+      - run: npm run typecheck
+      - name: Unit + axe accessibility tests
+        run: npm test
+      - run: npm run build
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    name: End-to-end + WCAG 2.2 AA (mobile & desktop)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --frozen --directory backend
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm run e2e
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+
+  ops:
+    name: Infra & ops config
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Lint Dockerfiles
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          recursive: true
+          dockerfile: "*Dockerfile"
+      - name: Validate Kubernetes manifests
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          for overlay in staging production; do
+            kubectl kustomize deploy/k8s/overlays/$overlay | ./kubeconform -strict -summary -kubernetes-version 1.31.0 -
+          done
+      - name: Check and unit-test Prometheus alerts
+        run: |
+          docker run --rm -v "$PWD/ops/prometheus:/p" -w /p --entrypoint promtool prom/prometheus:v2.55.0 check config prometheus.yml
+          docker run --rm -v "$PWD/ops/prometheus:/p" -w /p --entrypoint promtool prom/prometheus:v2.55.0 test rules rules.test.yml
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
