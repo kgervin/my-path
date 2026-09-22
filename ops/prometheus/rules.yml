@@ -1,0 +1,76 @@
+# SLOs are defined in docs/sre/slos.md. Alerts use multi-window, multi-burn-rate
+# (Google SRE Workbook ch. 5) so they page on fast burns and ticket on slow ones.
+groups:
+  - name: my-path-sli
+    rules:
+      - record: my_path:http_requests:rate5m
+        expr: sum(rate(my_path_http_requests_total{route!~"/healthz|/readyz|/metrics"}[5m]))
+      - record: my_path:http_errors:rate5m
+        expr: sum(rate(my_path_http_requests_total{route!~"/healthz|/readyz|/metrics",status="5xx"}[5m]))
+      - record: my_path:availability_error_ratio:rate5m
+        expr: my_path:http_errors:rate5m / clamp_min(my_path:http_requests:rate5m, 1e-9)
+      - record: my_path:availability_error_ratio:rate30m
+        expr: >
+          sum(rate(my_path_http_requests_total{route!~"/healthz|/readyz|/metrics",status="5xx"}[30m]))
+          / clamp_min(sum(rate(my_path_http_requests_total{route!~"/healthz|/readyz|/metrics"}[30m])), 1e-9)
+      - record: my_path:availability_error_ratio:rate1h
+        expr: >
+          sum(rate(my_path_http_requests_total{route!~"/healthz|/readyz|/metrics",status="5xx"}[1h]))
+          / clamp_min(sum(rate(my_path_http_requests_total{route!~"/healthz|/readyz|/metrics"}[1h])), 1e-9)
+      - record: my_path:availability_error_ratio:rate6h
+        expr: >
+          sum(rate(my_path_http_requests_total{route!~"/healthz|/readyz|/metrics",status="5xx"}[6h]))
+          / clamp_min(sum(rate(my_path_http_requests_total{route!~"/healthz|/readyz|/metrics"}[6h])), 1e-9)
+      - record: my_path:read_latency_p95:5m
+        expr: >
+          histogram_quantile(0.95, sum by (le) (rate(my_path_http_request_duration_seconds_bucket{method="GET",route=~"/api/.*"}[5m])))
+      - record: my_path:draft_fallback_ratio:rate30m
+        expr: >
+          sum(rate(my_path_drafts_total{outcome="fallback"}[30m]))
+          / clamp_min(sum(rate(my_path_drafts_total[30m])), 1e-9)
+
+  - name: my-path-slo-alerts
+    rules:
+      # Availability SLO 99.5% => error budget 0.5%.
+      - alert: MyPathErrorBudgetFastBurn
+        expr: my_path:availability_error_ratio:rate1h > (14.4 * 0.005) and my_path:availability_error_ratio:rate5m > (14.4 * 0.005)
+        for: 2m
+        labels: { severity: page, service: my-path-api }
+        annotations:
+          summary: "My Path API is burning its error budget fast (2% of the 28-day budget per hour)"
+          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#high-error-rate"
+      - alert: MyPathErrorBudgetSlowBurn
+        expr: my_path:availability_error_ratio:rate6h > (6 * 0.005) and my_path:availability_error_ratio:rate30m > (6 * 0.005)
+        for: 15m
+        labels: { severity: ticket, service: my-path-api }
+        annotations:
+          summary: "My Path API is steadily burning its error budget"
+          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#high-error-rate"
+      - alert: MyPathReadLatencyHigh
+        expr: my_path:read_latency_p95:5m > 0.3
+        for: 10m
+        labels: { severity: ticket, service: my-path-api }
+        annotations:
+          summary: "p95 read latency above 300 ms for 10 minutes"
+          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#slow-responses"
+      - alert: MyPathDraftFallbackHigh
+        expr: my_path:draft_fallback_ratio:rate30m > 0.2 and sum(rate(my_path_drafts_total{drafter="anthropic"}[30m])) > 0
+        for: 15m
+        labels: { severity: ticket, service: my-path-api }
+        annotations:
+          summary: "More than 20% of AI drafts are falling back to templates"
+          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#ai-drafts-falling-back"
+      - alert: MyPathRunStuck
+        expr: max(my_path_runs_in_progress) > 0
+        for: 15m
+        labels: { severity: ticket, service: my-path-api }
+        annotations:
+          summary: "A run has been drafting for over 15 minutes"
+          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#run-stuck-in-processing"
+      - alert: MyPathApiDown
+        expr: up{job="my-path-api"} == 0
+        for: 2m
+        labels: { severity: page, service: my-path-api }
+        annotations:
+          summary: "Prometheus cannot scrape the My Path API"
+          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#api-down"

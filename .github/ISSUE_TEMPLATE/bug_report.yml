@@ -1,0 +1,26 @@
+name: Bug report
+description: Something is broken or confusing
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect instead?
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Upload the sample CSV\n2. Open the first student\n3. …"
+    validations: { required: true }
+  - type: input
+    id: request-id
+    attributes:
+      label: Request ID
+      description: From the X-Request-ID response header, if you have it. Helps us find logs.
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options: [Phone, Tablet, Desktop]

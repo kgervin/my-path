@@ -1,0 +1,14 @@
+name: Feature request
+description: Suggest an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: job
+    attributes:
+      label: Job to be done
+      description: Who needs this, and what are they trying to get done?
+    validations: { required: true }
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed solution

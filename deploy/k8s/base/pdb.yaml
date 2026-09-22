@@ -1,0 +1,17 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: my-path-api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: my-path-api }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: my-path-web
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: my-path-web }

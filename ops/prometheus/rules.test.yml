@@ -1,0 +1,32 @@
+# promtool test rules rules.test.yml
+rule_files: [rules.yml]
+evaluation_interval: 1m
+
+tests:
+  - name: fast burn pages when 10% of requests fail
+    interval: 1m
+    input_series:
+      - series: 'my_path_http_requests_total{route="/api/v1/runs/{run_id}/flags",method="GET",status="2xx"}'
+        values: "0+90x70"
+      - series: 'my_path_http_requests_total{route="/api/v1/runs/{run_id}/flags",method="GET",status="5xx"}'
+        values: "0+10x70"
+    alert_rule_test:
+      - eval_time: 65m
+        alertname: MyPathErrorBudgetFastBurn
+        exp_alerts:
+          - exp_labels: { severity: page, service: my-path-api }
+            exp_annotations:
+              summary: "My Path API is burning its error budget fast (2% of the 28-day budget per hour)"
+              runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#high-error-rate"
+
+  - name: healthy traffic does not page
+    interval: 1m
+    input_series:
+      - series: 'my_path_http_requests_total{route="/api/v1/runs/{run_id}/flags",method="GET",status="2xx"}'
+        values: "0+100x70"
+      - series: 'my_path_http_requests_total{route="/api/v1/runs/{run_id}/flags",method="GET",status="5xx"}'
+        values: "0+0x70"
+    alert_rule_test:
+      - eval_time: 65m
+        alertname: MyPathErrorBudgetFastBurn
+        exp_alerts: []
