@@ -18,12 +18,12 @@ concurrency:
 jobs:
   api:
     uses: ./.github/workflows/_image.yml
-    permissions: { contents: read, packages: write, id-token: write, security-events: write }
+    permissions: { contents: read, packages: write, id-token: write }
     with: { component: api, context: backend }
 
   web:
     uses: ./.github/workflows/_image.yml
-    permissions: { contents: read, packages: write, id-token: write, security-events: write }
+    permissions: { contents: read, packages: write, id-token: write }
     with: { component: web, context: frontend }
 
   deploy-staging:
