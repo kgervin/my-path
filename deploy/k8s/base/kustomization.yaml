@@ -16,8 +16,8 @@ resources:
   - ingress.yaml
 images:
   - name: my-path-api
-    newName: ghcr.io/OWNER/my-path-api
+    newName: ghcr.io/kgervin/my-path-api
     newTag: latest
   - name: my-path-web
-    newName: ghcr.io/OWNER/my-path-web
+    newName: ghcr.io/kgervin/my-path-web
     newTag: latest

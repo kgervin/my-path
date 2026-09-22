@@ -38,39 +38,39 @@ groups:
         labels: { severity: page, service: my-path-api }
         annotations:
           summary: "My Path API is burning its error budget fast (2% of the 28-day budget per hour)"
-          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#high-error-rate"
+          runbook_url: "https://github.com/kgervin/my-path/blob/main/docs/sre/runbook.md#high-error-rate"
       - alert: MyPathErrorBudgetSlowBurn
         expr: my_path:availability_error_ratio:rate6h > (6 * 0.005) and my_path:availability_error_ratio:rate30m > (6 * 0.005)
         for: 15m
         labels: { severity: ticket, service: my-path-api }
         annotations:
           summary: "My Path API is steadily burning its error budget"
-          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#high-error-rate"
+          runbook_url: "https://github.com/kgervin/my-path/blob/main/docs/sre/runbook.md#high-error-rate"
       - alert: MyPathReadLatencyHigh
         expr: my_path:read_latency_p95:5m > 0.3
         for: 10m
         labels: { severity: ticket, service: my-path-api }
         annotations:
           summary: "p95 read latency above 300 ms for 10 minutes"
-          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#slow-responses"
+          runbook_url: "https://github.com/kgervin/my-path/blob/main/docs/sre/runbook.md#slow-responses"
       - alert: MyPathDraftFallbackHigh
         expr: my_path:draft_fallback_ratio:rate30m > 0.2 and sum(rate(my_path_drafts_total{drafter="anthropic"}[30m])) > 0
         for: 15m
         labels: { severity: ticket, service: my-path-api }
         annotations:
           summary: "More than 20% of AI drafts are falling back to templates"
-          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#ai-drafts-falling-back"
+          runbook_url: "https://github.com/kgervin/my-path/blob/main/docs/sre/runbook.md#ai-drafts-falling-back"
       - alert: MyPathRunStuck
         expr: max(my_path_runs_in_progress) > 0
         for: 15m
         labels: { severity: ticket, service: my-path-api }
         annotations:
           summary: "A run has been drafting for over 15 minutes"
-          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#run-stuck-in-processing"
+          runbook_url: "https://github.com/kgervin/my-path/blob/main/docs/sre/runbook.md#run-stuck-in-processing"
       - alert: MyPathApiDown
         expr: up{job="my-path-api"} == 0
         for: 2m
         labels: { severity: page, service: my-path-api }
         annotations:
           summary: "Prometheus cannot scrape the My Path API"
-          runbook_url: "https://github.com/OWNER/my-path/blob/main/docs/sre/runbook.md#api-down"
+          runbook_url: "https://github.com/kgervin/my-path/blob/main/docs/sre/runbook.md#api-down"
