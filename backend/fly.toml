@@ -5,7 +5,7 @@
 # Launching from the Fly dashboard instead: set the working directory to `backend`.
 # See docs/deploy/fly.md.
 
-app = "my-path-api-kgervin"
+app = "my-path"
 primary_region = "lax"
 
 [build]

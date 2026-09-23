@@ -15,7 +15,7 @@ in the Fly dashboard set the **working directory** to `backend`.
 ```bash
 brew install flyctl && fly auth login
 cd backend
-fly launch --copy-config --no-deploy        # creates app my-path-api-kgervin from fly.toml
+fly launch --copy-config --no-deploy        # only if the app does not exist yet
 ```
 
 Create a database and give the app its URL. Any PostgreSQL works. For example, a free
@@ -31,10 +31,10 @@ fly deploy
 machine only after `/readyz` passes. Check it:
 
 ```bash
-curl https://my-path-api-kgervin.fly.dev/readyz   # {"status":"ready","database":"up",...}
+curl https://my-path.fly.dev/readyz   # {"status":"ready","database":"up",...}
 ```
 
-Then set `VITE_API_BASE_URL=https://my-path-api-kgervin.fly.dev/api/v1` in Vercel and redeploy the
+Then set `VITE_API_BASE_URL=https://my-path.fly.dev/api/v1` in Vercel and redeploy the
 frontend.
 
 ## Optional settings
@@ -52,7 +52,7 @@ after a pause takes a few seconds. Set `min_machines_running = 1` in `fly.toml` 
 The Release workflow can deploy to Fly after the API image passes its vulnerability scan:
 
 ```bash
-fly tokens create deploy -a my-path-api-kgervin   # copy the token
+fly tokens create deploy -a my-path   # copy the token
 gh secret set FLY_API_TOKEN -R kgervin/my-path --env fly
 gh variable set FLY_DEPLOY_ENABLED -R kgervin/my-path --body true
 ```
@@ -64,4 +64,4 @@ gh variable set FLY_DEPLOY_ENABLED -R kgervin/my-path --body true
 | Release command fails with a connection error | `MY_PATH_DATABASE_URL` is missing or wrong (`fly secrets list`). Use `postgresql+asyncpg://` and `?ssl=require`. |
 | Health check fails on `/readyz` | The database is unreachable from Fly. Check the provider's IP allow-list. |
 | UI shows "Connection problem" | CORS: the Vercel URL must match `MY_PATH_CORS_ORIGINS` or `MY_PATH_CORS_ORIGIN_REGEX`. |
-| Logs | `fly logs -a my-path-api-kgervin` (JSON; filter by `request_id`). |
+| Logs | `fly logs -a my-path` (JSON; filter by `request_id`). |
