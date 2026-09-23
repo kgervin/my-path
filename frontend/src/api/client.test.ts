@@ -1,6 +1,9 @@
 import { api, ApiError } from './client'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+})
 
 describe('api client', () => {
   it('builds filter query strings without empty values', async () => {
@@ -72,5 +75,16 @@ describe('api client', () => {
     const form = init?.body
     expect(form).toBeInstanceOf(FormData)
     expect(form instanceof FormData && form.get('as_of')).toBe('2026-09-22')
+  })
+
+  it('uses VITE_API_BASE_URL when the UI is hosted apart from the API', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.edu/api/v1/')
+    vi.resetModules()
+    const { api: remote } = await import('./client')
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response('{}'))
+    vi.stubGlobal('fetch', fetchMock)
+    await remote.meta()
+    expect(fetchMock).toHaveBeenCalledWith('https://api.example.edu/api/v1/meta', expect.anything())
+    expect(remote.sampleCsvUrl).toBe('https://api.example.edu/api/v1/sample-data.csv')
   })
 })

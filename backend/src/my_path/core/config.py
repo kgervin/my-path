@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     database_url: str = "sqlite+aiosqlite:///./my_path.db"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    # Optional pattern for hosts with per-deploy URLs, e.g. Vercel previews:
+    # ^https://kgervin-my-path(-[a-z0-9-]+)?\.vercel\.app$
+    cors_origin_regex: str | None = None
 
     max_upload_bytes: int = 2 * 1024 * 1024
     max_rows: int = 5000

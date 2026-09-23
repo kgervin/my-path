@@ -57,6 +57,8 @@ make web      # http://localhost:5173
 
 On the Upload page, choose **Download a sample CSV** (200 synthetic students), then upload it.
 
+To host the frontend on Vercel with the API elsewhere, see [docs/deploy/vercel.md](docs/deploy/vercel.md).
+
 Production-like stack with Docker: `make up`, then open http://localhost:8080. Add
 `--profile observability` for Prometheus (:9090) and Grafana (:3000).
 

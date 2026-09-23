@@ -1,6 +1,11 @@
 import type { FlagAction, FlagDetail, FlagFilters, FlagSummary, Meta, Run, Summary } from './types'
 
-const BASE = '/api/v1'
+/**
+ * Same-origin by default (Vite proxy locally, nginx in containers). When the UI is hosted apart
+ * from the API (e.g. Vercel), set VITE_API_BASE_URL at build time, e.g.
+ * https://api.example.edu/api/v1
+ */
+const BASE = (import.meta.env.VITE_API_BASE_URL ?? '/api/v1').replace(/\/+$/, '')
 
 /** RFC 9457 problem details, surfaced to people in plain language. */
 export class ApiError extends Error {
