@@ -57,6 +57,8 @@ make web      # http://localhost:5173
 
 On the Upload page, choose **Download a sample CSV** (200 synthetic students), then upload it.
 
+Hosted setup: API on Fly.io ([docs/deploy/fly.md](docs/deploy/fly.md)).
+
 Production-like stack with Docker: `make up`, then open http://localhost:8080. Add
 `--profile observability` for Prometheus (:9090) and Grafana (:3000).
 

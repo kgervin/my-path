@@ -1,0 +1,51 @@
+# Fly.io config for the My Path API. Build context is this folder (backend/).
+#   cd backend && fly launch --copy-config --no-deploy   # first time: creates the app
+#   fly secrets set MY_PATH_DATABASE_URL='postgresql+asyncpg://USER:PASS@HOST/DB?ssl=require'
+#   fly deploy
+# Launching from the Fly dashboard instead: set the working directory to `backend`.
+# See docs/deploy/fly.md.
+
+app = "my-path-api-kgervin"
+primary_region = "lax"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  # Runs in a one-off machine before new code takes traffic. Needs MY_PATH_DATABASE_URL.
+  release_command = "alembic upgrade head"
+  strategy = "rolling"
+
+[env]
+  MY_PATH_ENVIRONMENT = "production"
+  MY_PATH_LOG_LEVEL = "INFO"
+  MY_PATH_DRAFTER = "template"
+  MY_PATH_CORS_ORIGINS = '["https://kgervin-my-path.vercel.app"]'
+  MY_PATH_CORS_ORIGIN_REGEX = '^https://kgervin-my-path(-[a-z0-9-]+)?\.vercel\.app$'
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "15s"
+    timeout = "3s"
+    method = "GET"
+    path = "/readyz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[metrics]
+  port = 8000
+  path = "/metrics"

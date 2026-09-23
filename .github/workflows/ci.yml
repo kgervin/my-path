@@ -47,6 +47,44 @@ jobs:
           name: backend-coverage
           path: backend/coverage.xml
 
+  postgres:
+    name: Migrations + API on PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mypath
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      MY_PATH_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/mypath
+      MY_PATH_ENVIRONMENT: production
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --frozen
+      - name: Migrate and check for drift
+        run: uv run alembic upgrade head && uv run alembic check
+      - name: Smoke test the API against PostgreSQL
+        run: |
+          uv run uvicorn my_path.main:create_app --factory --port 8000 &
+          wait_for() { for _ in $(seq 1 30); do eval "$1" && return 0; sleep 1; done; return 1; }
+          wait_for 'curl -sf localhost:8000/readyz'
+          curl -sf localhost:8000/api/v1/sample-data.csv -o sample.csv
+          run=$(curl -sf -F file=@sample.csv localhost:8000/api/v1/runs | jq -r .id)
+          wait_for "[ \"\$(curl -sf localhost:8000/api/v1/runs/$run | jq -r .status)\" = ready ]"
+          curl -sf "localhost:8000/api/v1/runs/$run/summary" | jq -e '.counters.flagged == 25 and .counters.pending == 25'
+
   frontend:
     name: Frontend (lint, types, tests, build)
     runs-on: ubuntu-latest
