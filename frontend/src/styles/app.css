@@ -1262,6 +1262,12 @@
   .help-fab:hover {
     background: #333333;
   }
+  /* The sticky decision bar owns the bottom edge; Help stays reachable in the nav. */
+  @media (width < 64rem) {
+    body:has(.decision:not(.decision--done)) .help-fab {
+      display: none;
+    }
+  }
 
   /* ---------- Skeletons (queue loading) ---------- */
   .skeleton-list {
