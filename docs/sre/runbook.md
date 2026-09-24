@@ -56,8 +56,14 @@ Fallbacks are safe (coaches get a template), but quality drops.
 
 ## Deploy and rollback
 
-- Every image is addressed by **digest**; staging deploys on merge to `main`, production on a
-  `v*` tag after environment approval.
-- Migrations run as a Job before rollout. Migrations must be backward compatible for one release
-  (expand, then contract) so rollbacks stay safe.
-- Rollback: `kubectl -n my-path rollout undo deploy/my-path-api deploy/my-path-web`.
+- **Build once, promote the same digest.** Release builds, scans and signs the API image on
+  `main`, deploys that digest to **staging** and smoke-tests it. A `vX.Y.Z` tag plus approval
+  deploys the **same digest** to **production** after `cosign verify`. See
+  [docs/deploy/render.md](../deploy/render.md).
+- **What is live?** `curl https://my-path-api.onrender.com/healthz` reports the commit.
+- **Rollback:** re-run **Deploy to production** from the previous tag's Release run. It redeploys
+  that digest and moves `release` (the production web build) back.
+- **Migrations** run on API start and must be backward compatible for one release
+  (expand, then contract), so a rollback never meets a schema it can't read.
+- The Kubernetes manifests in `deploy/k8s` stay valid (CI checks them) for teams that move to a
+  cluster. They are not part of the Render pipeline.

@@ -231,7 +231,7 @@ async def test_meta_and_sample_data(client: httpx.AsyncClient) -> None:
 
 async def test_ops_endpoints_and_headers(client: httpx.AsyncClient) -> None:
     health = await client.get("/healthz", headers={"X-Request-ID": "abc123"})
-    assert health.json() == {"status": "ok"}
+    assert health.json() == {"status": "ok", "release": "dev"}
     assert health.headers["X-Request-ID"] == "abc123"
     assert health.headers["X-Content-Type-Options"] == "nosniff"
     ready = (await client.get("/readyz")).json()

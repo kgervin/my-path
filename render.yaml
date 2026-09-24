@@ -1,21 +1,28 @@
-# Render Blueprint: API (Docker, free) + frontend (static, free). Database: Neon (free).
-# Render dashboard -> New -> Blueprint -> kgervin/my-path (uses this file, render.yaml).
-# See docs/deploy/render.md.
+# Render Blueprint: staging + production, all on free plans. Database: Neon (a branch per env).
+#
+# Flow (docs/deploy/render.md, .github/workflows/release.yml):
+#   push to main -> build, scan and sign the API image ONCE -> deploy that digest to staging
+#   -> smoke test incl. writes -> tag vX.Y.Z -> approval -> the SAME digest to production
+#   -> read-only smoke test. Nothing is rebuilt between staging and production.
+#
+# APIs run the prebuilt image from GHCR (runtime: image) and are deployed only by the Release
+# workflow through deploy hooks. Web static sites build from git: staging from `main`,
+# production from `release`, a branch only the Release workflow moves (to the approved tag).
+# Staging and production blocks are intentionally identical apart from names, env and branch.
 
 services:
+  # ---------------- production ----------------
   - type: web
     name: my-path-api
-    runtime: docker
+    runtime: image
+    image:
+      url: ghcr.io/kgervin/my-path-api:main # default only; deploys pin a digest via the hook
     plan: free
-    region: ohio # same region as the Neon database (us-east-2)
-    rootDir: backend
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    region: ohio # same region as Neon us-east-2
     healthCheckPath: /readyz
-    autoDeployTrigger: checksPass # deploy only after GitHub CI is green
     envVars:
-      - key: MY_PATH_DATABASE_URL # postgresql+asyncpg://USER:PASSWORD@HOST/DB?ssl=require (Neon)
-        sync: false # entered once in the dashboard, never committed
+      - key: MY_PATH_DATABASE_URL # postgresql+asyncpg://USER:PASSWORD@HOST/DB?ssl=require
+        sync: false # set once in the dashboard (production Neon branch), never committed
       - key: MY_PATH_ENVIRONMENT
         value: production
       - key: MY_PATH_MIGRATE_ON_START # alembic upgrade head before serving (idempotent)
@@ -29,19 +36,80 @@ services:
     name: my-path-web
     runtime: static
     rootDir: frontend
+    branch: release # moved only by the Release workflow after approval
+    autoDeployTrigger: commit
     buildCommand: npm ci --no-audit --no-fund && npm run build
     staticPublishPath: dist
-    autoDeployTrigger: checksPass
     envVars:
       - key: NODE_VERSION
         value: "24"
     routes:
-      # Same-origin API: the browser calls /api/*, Render proxies to the API service.
-      # If Render gives the API a different URL (name taken), update this destination.
+      # Same-origin API: the browser calls /api/*, Render proxies it to the API service.
       - type: rewrite
         source: /api/*
         destination: https://my-path-api.onrender.com/api/*
-      # Single-page app: client routes (e.g. /queue) load the app. Real files win first.
+      # Single-page app: client routes (e.g. /queue) load the app; real files win first.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+  # ---------------- staging ----------------
+  - type: web
+    name: my-path-api-staging
+    runtime: image
+    image:
+      url: ghcr.io/kgervin/my-path-api:main # default only; deploys pin a digest via the hook
+    plan: free
+    region: ohio # same region as Neon us-east-2
+    healthCheckPath: /readyz
+    envVars:
+      - key: MY_PATH_DATABASE_URL # postgresql+asyncpg://USER:PASSWORD@HOST/DB?ssl=require
+        sync: false # set once in the dashboard (staging Neon branch), never committed
+      - key: MY_PATH_ENVIRONMENT
+        value: staging
+      - key: MY_PATH_MIGRATE_ON_START # alembic upgrade head before serving (idempotent)
+        value: "true"
+      - key: MY_PATH_DRAFTER
+        value: template
+      - key: PORT
+        value: "8000"
+
+  - type: web
+    name: my-path-web-staging
+    runtime: static
+    rootDir: frontend
+    branch: main # every green commit on main
+    autoDeployTrigger: checksPass
+    buildCommand: npm ci --no-audit --no-fund && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+    routes:
+      # Same-origin API: the browser calls /api/*, Render proxies it to the API service.
+      - type: rewrite
+        source: /api/*
+        destination: https://my-path-api-staging.onrender.com/api/*
+      # Single-page app: client routes (e.g. /queue) load the app; real files win first.
       - type: rewrite
         source: /*
         destination: /index.html
