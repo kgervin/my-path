@@ -1,0 +1,66 @@
+# Render Blueprint: API (Docker, free) + frontend (static, free). Database: Neon (free).
+# Render dashboard -> New -> Blueprint -> kgervin/my-path (uses this file, render.yaml).
+# See docs/deploy/render.md.
+
+services:
+  - type: web
+    name: my-path-api
+    runtime: docker
+    plan: free
+    region: ohio # same region as the Neon database (us-east-2)
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /readyz
+    autoDeployTrigger: checksPass # deploy only after GitHub CI is green
+    envVars:
+      - key: MY_PATH_DATABASE_URL # postgresql+asyncpg://USER:PASSWORD@HOST/DB?ssl=require (Neon)
+        sync: false # entered once in the dashboard, never committed
+      - key: MY_PATH_ENVIRONMENT
+        value: production
+      - key: MY_PATH_MIGRATE_ON_START # alembic upgrade head before serving (idempotent)
+        value: "true"
+      - key: MY_PATH_DRAFTER
+        value: template
+      - key: PORT
+        value: "8000"
+
+  - type: web
+    name: my-path-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci --no-audit --no-fund && npm run build
+    staticPublishPath: dist
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+    routes:
+      # Same-origin API: the browser calls /api/*, Render proxies to the API service.
+      # If Render gives the API a different URL (name taken), update this destination.
+      - type: rewrite
+        source: /api/*
+        destination: https://my-path-api.onrender.com/api/*
+      # Single-page app: client routes (e.g. /queue) load the app. Real files win first.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable

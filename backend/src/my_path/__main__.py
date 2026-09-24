@@ -4,7 +4,15 @@ import os
 
 import uvicorn
 
+from my_path.core.config import get_settings
+from my_path.core.logging import configure_logging
+from my_path.migrate import upgrade_to_head
+
 if __name__ == "__main__":
+    settings = get_settings()
+    if settings.migrate_on_start:
+        configure_logging(settings.log_level)
+        upgrade_to_head(settings.alembic_config)
     uvicorn.run(
         "my_path.main:create_app",
         factory=True,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -46,6 +47,11 @@ class Settings(BaseSettings):
     thresholds: RuleThresholds = Field(default_factory=RuleThresholds)
 
     otel_enabled: bool = False
+
+    # Run `alembic upgrade head` before serving. For hosts without a pre-deploy step (Render
+    # free). Kubernetes and Fly keep this off and migrate in a Job / release command instead.
+    migrate_on_start: bool = False
+    alembic_config: Path = Path("alembic.ini")
 
 
 @lru_cache
