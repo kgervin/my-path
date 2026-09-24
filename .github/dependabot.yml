@@ -17,6 +17,10 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    # Actions are pinned to commit SHAs (`uses: owner/action@<sha> # vX.Y.Z`); Dependabot
+    # updates the SHA and the comment together. Minor/patch bumps arrive as one PR.
+    groups:
+      actions-minor: { update-types: [minor, patch] }
   - package-ecosystem: docker
     directories: [/backend, /frontend]
     schedule: { interval: weekly }
