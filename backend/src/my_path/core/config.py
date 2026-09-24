@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     )
 
     environment: Literal["local", "test", "staging", "production"] = "local"
+    # Git commit the running build came from (set at image build time). Lets a deploy pipeline
+    # confirm the new version is live before testing it.
+    release: str = "dev"
     log_level: str = "INFO"
     database_url: str = "sqlite+aiosqlite:///./my_path.db"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
