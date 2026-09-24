@@ -16,6 +16,21 @@ interface Selection {
 }
 
 /** Local calendar date as YYYY-MM-DD (toISOString would give the UTC date). */
+const HOW_IT_WORKS = [
+  {
+    title: 'Rules flag barriers',
+    body: 'Holds, small balances, failed payments, missing aid forms, silence and next-term gaps.',
+  },
+  {
+    title: 'Drafts in plain words',
+    body: 'Each student gets a one-sentence reason and a short, warm message at grade 8 or below.',
+  },
+  {
+    title: 'You decide',
+    body: 'Approve, edit, route or dismiss. Every choice is logged, and you can always undo.',
+  },
+] as const
+
 function today(): string {
   return new Date().toLocaleDateString('en-CA')
 }
@@ -49,12 +64,15 @@ export function UploadPage() {
 
   return (
     <>
-      <PageHeading title="Upload student records">
-        <p>
-          My Path checks each student for six small, fixable barriers, explains what it found and
-          drafts a message for you to review. Nothing is sent automatically.
-        </p>
-      </PageHeading>
+      <section className="hero" aria-labelledby="upload-heading">
+        <span className="eyebrow">For ASU Online success coaches</span>
+        <PageHeading title="Upload student records" id="upload-heading">
+          <p>
+            My Path checks each student for six small, fixable barriers, explains what it found and
+            drafts a message for you to review. Nothing is sent automatically.
+          </p>
+        </PageHeading>
+      </section>
 
       {latest ? (
         <aside className="callout" aria-label="Latest run">
@@ -106,6 +124,23 @@ export function UploadPage() {
           {upload.isPending ? 'Running My Path…' : 'Run My Path'}
         </button>
       </form>
+
+      <section aria-labelledby="how-heading" className="stack">
+        <h2 id="how-heading">How it works</h2>
+        <ol className="features">
+          {HOW_IT_WORKS.map((step, index) => (
+            <li key={step.title} className="feature">
+              <span className="feature__step" aria-hidden="true">
+                {index + 1}
+              </span>
+              <div>
+                <p className="feature__title">{step.title}</p>
+                <p>{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       {meta ? (
         <details className="disclosure">

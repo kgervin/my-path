@@ -4,12 +4,14 @@ import { usePageTitle } from '../hooks/usePageTitle'
 
 interface Props {
   title: string
+  /** Lets a surrounding landmark reference the heading (aria-labelledby). */
+  id?: string
   children?: ReactNode
   /** Move focus here on mount so keyboard and screen reader users land at the new page. */
   focusOnMount?: boolean
 }
 
-export function PageHeading({ title, children, focusOnMount = true }: Props) {
+export function PageHeading({ title, id, children, focusOnMount = true }: Props) {
   const ref = useRef<HTMLHeadingElement>(null)
   usePageTitle(title)
   useEffect(() => {
@@ -17,7 +19,7 @@ export function PageHeading({ title, children, focusOnMount = true }: Props) {
   }, [focusOnMount])
   return (
     <div className="page-heading">
-      <h1 ref={ref} tabIndex={-1}>
+      <h1 ref={ref} id={id} tabIndex={-1}>
         {title}
       </h1>
       {children ? <div className="page-heading__lede">{children}</div> : null}
