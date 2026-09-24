@@ -1,6 +1,7 @@
 # My Path
 
 [![CI](https://github.com/kgervin/my-path/actions/workflows/ci.yml/badge.svg)](https://github.com/kgervin/my-path/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CodeQL](https://github.com/kgervin/my-path/actions/workflows/codeql.yml/badge.svg)](https://github.com/kgervin/my-path/actions/workflows/codeql.yml)
 
 My Path helps ASU Online success coaches find students with **small, fixable barriers**
@@ -47,7 +48,7 @@ flowchart LR
 
 ## Quick start
 
-Requirements: Python 3.12+ with [uv](https://docs.astral.sh/uv/), Node 22+.
+Requirements: Python 3.12+ (3.14 in production) with [uv](https://docs.astral.sh/uv/), Node 24 LTS.
 
 ```bash
 make install
@@ -94,3 +95,7 @@ docs/        Architecture, ADRs, SRE (SLOs, runbook, incidents), UX and accessib
 - [SLOs](docs/sre/slos.md) · [Runbook](docs/sre/runbook.md) · [Incident response](docs/sre/incident-response.md) · [Error budget policy](docs/sre/error-budget-policy.md)
 - [Nielsen's 10 heuristics in My Path](docs/ux/nielsen-heuristics.md) · [Accessibility](docs/accessibility.md)
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+
+## License
+
+[MIT](LICENSE) © 2026 Gervin Kahunde

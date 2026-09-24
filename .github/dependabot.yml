@@ -10,9 +10,20 @@ updates:
     schedule: { interval: weekly }
     groups:
       npm-minor: { update-types: [minor, patch] }
+    ignore:
+      # Types track the Node runtime (24 LTS); bump together with the runtime.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
   - package-ecosystem: docker
     directories: [/backend, /frontend]
     schedule: { interval: weekly }
+    ignore:
+      # Runtime upgrades change the image, CI, Render and .python-version together, and Node
+      # moves only between LTS (even) releases. Patch/digest updates still flow automatically.
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
