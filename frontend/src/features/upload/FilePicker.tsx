@@ -29,10 +29,12 @@ export function FilePicker({ onSelect, describedBy }: Props) {
       onDragLeave={() => setDragging(false)}
       onDrop={onDrop}
     >
-      <Icon name="upload" size={32} />
+      <span className="dropzone__icon" aria-hidden="true">
+        <Icon name="file" size={24} />
+      </span>
       <label htmlFor={inputId} className="dropzone__label">
-        <span className="dropzone__cta">Choose a CSV file</span>
-        <span className="dropzone__hint">or drag and drop it here</span>
+        <span className="dropzone__cta">Choose or drop a CSV file</span>
+        <span className="dropzone__hint">Drag and drop · or click to browse</span>
       </label>
       <input
         id={inputId}

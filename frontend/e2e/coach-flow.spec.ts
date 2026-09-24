@@ -13,7 +13,7 @@ test('coach uploads, reviews and approves outreach end to end', async ({ page, r
 
   await page.goto('/')
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Upload student records' }),
+    page.getByRole('heading', { level: 1, name: 'Surface students before they slip.' }),
   ).toBeVisible()
   await expectAccessible(page)
 
@@ -21,12 +21,14 @@ test('coach uploads, reviews and approves outreach end to end', async ({ page, r
   await page.getByRole('button', { name: 'Save' }).first().click()
 
   await page
-    .getByLabel(/Choose a CSV file/)
+    .getByLabel(/Choose or drop a CSV file/)
     .setInputFiles({ name: 'students.csv', mimeType: 'text/csv', buffer: csv })
   await expect(page.getByText('All required columns found. Ready to run.')).toBeVisible()
   await page.getByRole('button', { name: 'Run My Path' }).click()
 
-  await expect(page.getByRole('heading', { level: 1, name: 'Review queue' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { level: 1, name: /students? needs? review/ }),
+  ).toBeVisible()
   await expect(page.getByText(/Showing 25 of 25 flagged students/)).toBeVisible()
   await expectAccessible(page)
 
@@ -37,7 +39,7 @@ test('coach uploads, reviews and approves outreach end to end', async ({ page, r
     .click()
   const heading = page.getByRole('heading', { level: 2 })
   await expect(heading).toBeFocused()
-  await expect(page.getByRole('region', { name: /was flagged/ })).toContainText('Drop date')
+  await expect(page.getByRole('region', { name: 'Detected barriers' })).toContainText('Drop date')
   await expectAccessible(page)
 
   await page.getByRole('button', { name: 'Approve', exact: true }).click()
@@ -45,7 +47,7 @@ test('coach uploads, reviews and approves outreach end to end', async ({ page, r
   await expect(page.getByRole('button', { name: 'Reopen' })).toBeFocused()
 
   await page.goto('/summary')
-  await expect(page.getByRole('table', { name: 'Students by barrier and status' })).toBeVisible()
+  await expect(page.getByRole('table', { name: 'By barrier type' })).toBeVisible()
   await expectAccessible(page)
 })
 

@@ -41,8 +41,14 @@ export interface ActionLogEntry {
   created_at: string
 }
 
+export interface Finding {
+  barrier: string
+  source_fields: Record<string, string>
+}
+
 export interface FlagDetail extends FlagSummary {
   run_id: string
+  findings: Finding[]
   explanation: string | null
   source_fields: Record<string, string>
   draft_message: string | null
@@ -76,6 +82,7 @@ export interface BarrierInfo {
   id: string
   label: string
   description: string
+  suggested_fix: string
   routes_to: string[]
 }
 

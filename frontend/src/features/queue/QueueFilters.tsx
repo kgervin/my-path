@@ -4,7 +4,7 @@ import { useMeta } from '../../api/queries'
 import { STATUS_LABELS } from '../../lib/format'
 import type { useQueueFilters } from './useQueueFilters'
 
-type Props = ReturnType<typeof useQueueFilters> & { programs: string[] }
+type Props = ReturnType<typeof useQueueFilters> & { programs: string[] | undefined }
 
 const URGENCY_OPTIONS = [
   ['urgent', 'Under 7 days'],
@@ -12,7 +12,9 @@ const URGENCY_OPTIONS = [
   ['later', 'More than 14 days'],
 ] as const
 
-export function QueueFilters({ filters, setFilter, clear, active, programs }: Props) {
+const NO_PROGRAMS: string[] = []
+
+export function QueueFilters({ filters, setFilter, clear, active, programs = NO_PROGRAMS }: Props) {
   const { data: meta } = useMeta()
   const id = useId()
   return (

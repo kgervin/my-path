@@ -7,12 +7,14 @@ export const meta: Meta = {
       id: 'failed_payment',
       label: 'Failed payment',
       description: 'Payment failed.',
+      suggested_fix: 'Ask them to update their payment method.',
       routes_to: ['coach', 'bursar'],
     },
     {
       id: 'registration_hold',
       label: 'Registration hold',
       description: 'Has a hold.',
+      suggested_fix: 'Explain the hold and how to clear it.',
       routes_to: ['coach'],
     },
   ],
@@ -62,6 +64,10 @@ export const flags: FlagSummary[] = [
 export const flagDetail: FlagDetail = {
   ...(flags[0] as FlagSummary),
   run_id: 'run-1',
+  findings: [
+    { barrier: 'failed_payment', source_fields: { last_payment_status: 'failed' } },
+    { barrier: 'registration_hold', source_fields: { hold_codes: 'BURSAR_HOLD' } },
+  ],
   explanation:
     'Maria has a failed last payment (last_payment_status); the drop date is 2026-09-25.',
   source_fields: {

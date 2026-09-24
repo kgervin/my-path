@@ -10,7 +10,7 @@ Coaches use phones and laptops. The UI must meet WCAG 2.2 AA and stay small and 
 - React 19 + TypeScript (strict), Vite, React Router, TanStack Query for server state.
 - No component library: native elements (`<dialog>`, `<details>`, `<progress>`, `<table>`)
   give accessibility for free. Styling is one mobile-first stylesheet with cascade layers and
-  design tokens, with light and dark themes.
+  design tokens (light theme only; see ADR 0005).
 - Accessibility is enforced by oxlint jsx-a11y rules, axe in unit tests, and axe + Playwright
   in CI on phone and desktop viewports.
 

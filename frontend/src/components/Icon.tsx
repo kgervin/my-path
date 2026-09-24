@@ -11,6 +11,10 @@ const PATHS = {
   info: 'M12 16v-4m0-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   back: 'M15 18l-6-6 6-6',
   next: 'M9 18l6-6-6-6',
+  filter: 'M3 6h18M7 12h10M10 18h4',
+  play: 'M7 4v16l13-8L7 4Z',
+  file: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Zm0 0v5h5M12 17v-6m0 0-2.5 2.5M12 11l2.5 2.5',
+  help: 'M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3m.1 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
 } as const
 
 export type IconName = keyof typeof PATHS

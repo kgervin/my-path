@@ -1,14 +1,12 @@
 import { useId } from 'react'
 import { Link, useParams } from 'react-router'
 
-import { useMeta, useRun, useSummary } from '../../api/queries'
-import type { FlagStatus, Summary } from '../../api/types'
+import { useRun, useSummary } from '../../api/queries'
+import type { Summary } from '../../api/types'
+import { BarrierChip } from '../../components/Badges'
 import { Counters } from '../../components/Counters'
 import { PageHeading } from '../../components/PageHeading'
 import { ErrorState, Loading } from '../../components/StateViews'
-import { humanize, STATUS_LABELS } from '../../lib/format'
-
-const STATUSES = Object.keys(STATUS_LABELS) as FlagStatus[]
 
 export function SummaryPage() {
   const { runId = '' } = useParams()
@@ -22,65 +20,55 @@ export function SummaryPage() {
 
   return (
     <>
-      <PageHeading title="Run summary">
+      <PageHeading title="Summary" documentTitle="Run summary">
         <p>
-          {summary.data.run.filename} · {summary.data.run.total_records} students checked ·{' '}
+          {summary.data.run.total_records} students scanned this session ·{' '}
           <Link to={`/runs/${runId}`}>Back to the queue</Link>
         </p>
       </PageHeading>
-      <Counters counters={summary.data.counters} />
+      <Counters counters={summary.data.counters} pendingLabel="Pending" />
       <BarrierTable summary={summary.data} />
     </>
   )
 }
 
-/** A real table (with caption and scoped headers); the bar is a visual aid, never the only cue. */
+/** A real table (caption, scoped headers). Color only reinforces the column headers. */
 function BarrierTable({ summary }: { summary: Summary }) {
-  const { data: meta } = useMeta()
   const captionId = useId()
-  const label = (id: string) => meta?.barriers.find((b) => b.id === id)?.label ?? humanize(id)
-  const rows = Object.entries(summary.by_barrier).toSorted(([, a], [, b]) => b - a)
-  const max = Math.max(1, ...rows.map(([, count]) => count))
+  const { by_barrier: byBarrier, by_barrier_status: byStatus } = summary
+  const rows = Object.entries(byBarrier).toSorted(([, a], [, b]) => b - a)
+  const count = (barrier: string, ...statuses: (keyof NonNullable<(typeof byStatus)[string]>)[]) =>
+    statuses.reduce((sum, s) => sum + (byStatus[barrier]?.[s] ?? 0), 0)
 
   return (
     // A scrollable region must be keyboard reachable on small screens (WCAG 2.1.1).
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
     <div className="card table-wrap" role="region" aria-labelledby={captionId} tabIndex={0}>
       <table className="table">
-        <caption id={captionId}>Students by barrier and status</caption>
+        <caption id={captionId}>By barrier type</caption>
         <thead>
           <tr>
             <th scope="col">Barrier</th>
-            <th scope="col">Total</th>
-            {STATUSES.map((status) => (
-              <th key={status} scope="col">
-                {STATUS_LABELS[status]}
-              </th>
-            ))}
+            <th scope="col">Flagged</th>
+            <th scope="col">Approved</th>
+            <th scope="col">Routed</th>
+            <th scope="col">Dismissed</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(([barrier, count]) => (
+          {rows.map(([barrier, total]) => (
             <tr key={barrier}>
-              <th scope="row">{label(barrier)}</th>
-              <td>
-                <span className="bar-cell">
-                  <span
-                    className="bar"
-                    style={{ inlineSize: `${(count / max) * 100}%` }}
-                    aria-hidden="true"
-                  />
-                  {count}
-                </span>
-              </td>
-              {STATUSES.map((status) => (
-                <td key={status}>{summary.by_barrier_status[barrier]?.[status] ?? 0}</td>
-              ))}
+              <th scope="row">
+                <BarrierChip barrier={barrier} />
+              </th>
+              <td className="num num--strong">{total}</td>
+              <td className="num num--success">{count(barrier, 'approved', 'edited')}</td>
+              <td className="num num--info">{count(barrier, 'routed')}</td>
+              <td className="num num--muted">{count(barrier, 'dismissed')}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="hint">A student with two barriers is counted once in each row.</p>
     </div>
   )
 }

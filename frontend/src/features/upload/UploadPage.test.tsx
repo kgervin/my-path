@@ -16,9 +16,14 @@ describe('UploadPage', () => {
     mockApi([get(/\/meta$/, () => meta)])
     const { container } = renderRoute('/')
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Upload student records' }),
+      await screen.findByRole('heading', { level: 1, name: 'Surface students before they slip.' }),
     ).toHaveFocus()
-    expect(screen.getByRole('link', { name: 'Download a sample CSV' })).toHaveAttribute('download')
+    expect(document.title).toBe('Upload student records · My Path')
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Upload student records' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Try sample data/ })).toBeEnabled()
+    expect(screen.getByRole('link', { name: 'Upload CSV' })).toHaveAttribute('href', '#upload')
     expect(screen.getByRole('button', { name: 'Run My Path' })).toBeDisabled()
     expect(await axe(container)).toHaveNoViolations()
   })
@@ -27,9 +32,9 @@ describe('UploadPage', () => {
     const { calls } = mockApi([get(/\/meta$/, () => meta)])
     const user = userEvent.setup()
     renderRoute('/')
-    await screen.findByText('Which columns does the file need?')
+    await screen.findByText('Required CSV columns')
     await user.upload(
-      screen.getByLabelText(/Choose a CSV file/),
+      screen.getByLabelText(/Choose or drop a CSV file/),
       csv('student_id,first_name\nS1,Ana\n'),
     )
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -40,7 +45,7 @@ describe('UploadPage', () => {
   })
 
   it('uploads a valid file and opens the queue', async () => {
-    const { calls } = mockApi([
+    const { posts: uploads } = mockApi([
       get(/\/meta$/, () => meta),
       post(/\/runs$/, () => ({ ...run, status: 'processing' }), 202),
       get(/\/runs\/run-1$/, () => run),
@@ -49,15 +54,15 @@ describe('UploadPage', () => {
     ])
     const user = userEvent.setup()
     const { router } = renderRoute('/')
-    await screen.findByText('Which columns does the file need?')
+    await screen.findByText('Required CSV columns')
     await user.upload(
-      screen.getByLabelText(/Choose a CSV file/),
+      screen.getByLabelText(/Choose or drop a CSV file/),
       csv(`${header}\nS1,Ana,BS,2026-10-01\n`),
     )
     expect(await screen.findByText('All required columns found. Ready to run.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Run My Path' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/runs/run-1'))
-    expect(calls.find((c) => c.method === 'POST')?.path).toBe('/api/v1/runs')
+    expect(uploads().at(-1)?.path).toBe('/api/v1/runs')
   })
 
   it('shows every server-side row error so the file can be fixed in one pass', async () => {
@@ -75,19 +80,29 @@ describe('UploadPage', () => {
     ])
     const user = userEvent.setup()
     renderRoute('/')
-    await screen.findByText('Which columns does the file need?')
-    await user.upload(screen.getByLabelText(/Choose a CSV file/), csv(`${header}\nS1,Ana,BS,x\n`))
+    await screen.findByText('Required CSV columns')
+    await user.upload(
+      screen.getByLabelText(/Choose or drop a CSV file/),
+      csv(`${header}\nS1,Ana,BS,x\n`),
+    )
     await user.click(await screen.findByRole('button', { name: 'Run My Path' }))
     expect(await screen.findByText('The file needs a few fixes')).toBeInTheDocument()
     expect(screen.getByText('Row 3: bad')).toBeInTheDocument()
   })
 
-  it('offers to continue the latest run', async () => {
-    mockApi([get(/\/meta$/, () => meta), get(/\/runs\/latest$/, () => run)])
-    renderRoute('/')
-    expect(await screen.findByRole('link', { name: /Continue reviewing/ })).toHaveAttribute(
-      'href',
-      '/runs/run-1',
-    )
+  it('runs the built-in sample in one click and opens the queue', async () => {
+    const { posts } = mockApi([
+      get(/\/meta$/, () => meta),
+      get(/\/sample-data\.csv$/, () => 'student_id,first_name'),
+      post(/\/runs$/, () => ({ ...run, status: 'processing' }), 202),
+      get(/\/runs\/run-1$/, () => run),
+      get(/\/runs\/run-1\/summary$/, () => ({})),
+      get(/\/runs\/run-1\/flags$/, () => []),
+    ])
+    const user = userEvent.setup()
+    const { router } = renderRoute('/')
+    await user.click(await screen.findByRole('button', { name: /Try sample data/ }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/runs/run-1'))
+    expect(posts()).toHaveLength(1)
   })
 })

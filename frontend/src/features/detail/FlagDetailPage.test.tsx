@@ -40,7 +40,7 @@ function withCoach() {
   window.localStorage.setItem('my-path.coach-name', 'Coach Kim')
 }
 
-describe('FlagDetailPage', () => {
+describe('FlagDetailPage: what the coach sees', () => {
   it('shows why the student was flagged with the exact source fields', async () => {
     withCoach()
     api(() => flagDetail)
@@ -48,13 +48,23 @@ describe('FlagDetailPage', () => {
     const heading = await screen.findByRole('heading', { level: 2, name: /Maria/ })
     await waitFor(() => expect(heading).toHaveFocus())
     expect(document.title).toBe('Maria (S0001) · My Path')
-    const why = screen.getByRole('region', { name: 'Why Maria was flagged' })
-    expect(within(why).getByText('Last payment status')).toBeInTheDocument()
-    expect(within(why).getByText('BURSAR_HOLD')).toBeInTheDocument()
-    expect(within(why).getByText(/Suggested route: Coach, Bursar/)).toBeInTheDocument()
+    const header = screen.getByRole('region', { name: 'Maria' })
+    expect(within(header).getByText(/Suggested route: Coach, Bursar/)).toBeInTheDocument()
+    expect(within(header).getByText('BS Psychology · S0001')).toBeInTheDocument()
+    const barriers = screen.getByRole('region', { name: 'Detected barriers' })
+    const paymentFields = within(barriers).getByLabelText('Source fields for Failed payment')
+    expect(within(paymentFields).getByText('Last payment status')).toBeInTheDocument()
+    expect(within(paymentFields).queryByText('Hold codes')).toBeNull()
+    const holdFields = within(barriers).getByLabelText('Source fields for Registration hold')
+    expect(within(holdFields).getByText('BURSAR_HOLD')).toBeInTheDocument()
+    expect(
+      within(barriers).getByText('Ask them to update their payment method.'),
+    ).toBeInTheDocument()
     expect(await axe(container)).toHaveNoViolations()
   })
+})
 
+describe('FlagDetailPage', () => {
   it('approves with edits, sending coach name and version, and offers Undo', async () => {
     withCoach()
     const posts = api((body) =>

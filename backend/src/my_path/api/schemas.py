@@ -51,8 +51,16 @@ class ActionLogOut(ApiModel):
     created_at: datetime
 
 
+class FindingOut(ApiModel):
+    """One barrier and the exact source fields the rule used for it."""
+
+    barrier: str
+    source_fields: dict[str, str]
+
+
 class FlagDetailOut(FlagSummaryOut):
     run_id: str
+    findings: list[FindingOut]
     explanation: str | None
     source_fields: dict[str, str]
     draft_message: str | None
@@ -134,6 +142,7 @@ class BarrierInfo(BaseModel):
     id: str
     label: str
     description: str
+    suggested_fix: str
     routes_to: list[str]
 
 

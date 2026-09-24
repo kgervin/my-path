@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'vitest-axe'
 
@@ -49,7 +49,7 @@ describe('app shell', () => {
       get(/\/runs\/run-1\/flags$/, () => flags),
     ])
     const { router } = renderRoute('/queue')
-    expect(await screen.findByRole('heading', { name: 'Review queue' })).toBeInTheDocument()
+    await waitFor(() => expect(document.title).toBe('Review queue · My Path'))
     expect(router.state.location.pathname).toBe('/runs/run-1')
   })
 
