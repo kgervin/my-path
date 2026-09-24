@@ -22,7 +22,7 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: backend/uv.lock
@@ -79,7 +79,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: backend/uv.lock
@@ -118,7 +118,7 @@ jobs:
           for overlay in staging production; do
             kubectl kustomize deploy/k8s/overlays/$overlay | ./kubeconform -strict -summary -kubernetes-version 1.31.0 -
           done
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Validate Render blueprint
         run: uvx check-jsonschema --schemafile https://render.com/schema/render.yaml.json render.yaml
       - name: Check and unit-test Prometheus alerts
