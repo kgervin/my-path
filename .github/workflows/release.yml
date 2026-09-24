@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - name: Render manifests pinned to image digests
         run: |
           cd deploy/k8s/overlays/staging
@@ -40,7 +40,7 @@ jobs:
             my-path-api=ghcr.io/${{ github.repository_owner }}/my-path-api@${{ needs.api.outputs.digest }} \
             my-path-web=ghcr.io/${{ github.repository_owner }}/my-path-web@${{ needs.web.outputs.digest }}
           kustomize build . > ../../../../rendered-staging.yaml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rendered-staging
           path: rendered-staging.yaml
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production # configure required reviewers in repo settings
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - name: Render manifests pinned to image digests
         run: |
           cd deploy/k8s/overlays/production
@@ -73,7 +73,7 @@ jobs:
             my-path-api=ghcr.io/${{ github.repository_owner }}/my-path-api@${{ needs.api.outputs.digest }} \
             my-path-web=ghcr.io/${{ github.repository_owner }}/my-path-web@${{ needs.web.outputs.digest }}
           kustomize build . > ../../../../rendered-production.yaml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rendered-production
           path: rendered-production.yaml

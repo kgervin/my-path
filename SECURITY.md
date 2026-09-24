@@ -16,6 +16,8 @@ acknowledge reports within 3 business days.
 ## Supply chain
 
 - Dependencies are locked (`uv.lock`, `package-lock.json`) and updated weekly by Dependabot.
+- GitHub Actions are pinned to full commit SHAs, so a moved or hijacked tag cannot change
+  what CI runs. Dependabot bumps the SHA and its `# vX.Y.Z` comment together.
 - CI runs `pip-audit`, `npm audit`, CodeQL, gitleaks and Trivy image scans.
 - Release images are built with SBOM + provenance and signed keylessly with Sigstore cosign.
   Verify with:
