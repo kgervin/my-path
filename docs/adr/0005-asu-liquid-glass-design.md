@@ -25,3 +25,13 @@ guarantees the product is built around.
 ## Consequences
 Axe (WCAG 2.2 AA) now runs in CI on a light phone, a **dark** phone and a desktop viewport.
 New colors must be added as tokens and contrast-checked in both themes.
+
+## Update (2026-09-24): visual refresh from the Figma Make prototype
+- **Type:** Plus Jakarta Sans (variable, self-hosted via `@fontsource`, so the CSP stays
+  `default-src 'self'`) for display; system SF for body text.
+- **Layout:** joined panels with hairline dividers (stat strip, student list, "How it works"),
+  a larger and tighter hero headline, initials avatars, and a large "days left" figure in three
+  urgency tiers (critical, warning, normal). Each tier's color passes AA in both themes, and
+  screen readers get the full sentence ("Urgent: 3 days to drop").
+- **Kept official ASU Maroon `#8C1D40`**; the prototype's `#c41e4a` is not an ASU color.
+- **No eyebrow labels** (small uppercase kickers above headings) anywhere, by product decision.

@@ -4,7 +4,7 @@ import { Link, Outlet, useParams } from 'react-router'
 import { useFlags, useRun, useSummary } from '../../api/queries'
 import { Counters } from '../../components/Counters'
 import { PageHeading } from '../../components/PageHeading'
-import { EmptyState, ErrorState, Loading } from '../../components/StateViews'
+import { EmptyState, ErrorState, Loading, SkeletonList } from '../../components/StateViews'
 import { FlagList } from './FlagList'
 import { QueueFilters } from './QueueFilters'
 import { RunProgress } from './RunProgress'
@@ -74,7 +74,7 @@ interface ResultsProps {
 
 function QueueResults({ ready, flags, total, filtered, onClear, children }: ResultsProps) {
   if (!ready) return null
-  if (flags.isPending) return <Loading label="Loading students…" />
+  if (flags.isPending) return <SkeletonList label="Loading students…" />
   if (flags.isError) return <ErrorState error={flags.error} onRetry={() => void flags.refetch()} />
   if (total === 0) {
     return (

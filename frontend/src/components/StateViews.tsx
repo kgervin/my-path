@@ -12,6 +12,24 @@ export function Loading({ label = 'Loading…' }: { label?: string }) {
   )
 }
 
+/** Placeholder cards while the queue loads; screen readers hear only the label. */
+export function SkeletonList({ label, rows = 5 }: { label: string; rows?: number }) {
+  return (
+    <div role="status" className="skeleton-list">
+      <span className="visually-hidden">{label}</span>
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="skeleton-card" aria-hidden="true">
+          <span className="skeleton skeleton--avatar" />
+          <span className="skeleton-card__lines">
+            <span className="skeleton skeleton--line" />
+            <span className="skeleton skeleton--line skeleton--short" />
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 interface ErrorProps {
   error: unknown
   onRetry?: () => void

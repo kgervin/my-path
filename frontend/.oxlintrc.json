@@ -32,7 +32,7 @@
     "typescript/no-non-null-assertion": "error",
     "import/no-unassigned-import": [
       "warn",
-      { "allow": ["**/*.css", "@testing-library/jest-dom/vitest"] }
+      { "allow": ["**/*.css", "@fontsource-variable/*", "@testing-library/jest-dom/vitest"] }
     ],
     "eqeqeq": "error",
     "no-console": "error",
