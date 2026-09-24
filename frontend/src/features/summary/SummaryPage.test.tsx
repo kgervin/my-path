@@ -15,12 +15,21 @@ describe('SummaryPage', () => {
       get(/\/runs\/run-1\/summary$/, () => summary),
     ])
     const { container } = renderRoute('/runs/run-1/summary')
-    const table = await screen.findByRole('table', { name: 'Students by barrier and status' })
-    const rows = within(table).getAllByRole('row')
-    expect(rows[1]).toHaveTextContent('Registration hold2')
-    expect(within(rows[1] as HTMLElement).getByRole('rowheader')).toHaveTextContent(
+    expect(await screen.findByRole('heading', { level: 1, name: 'Summary' })).toBeInTheDocument()
+    const table = await screen.findByRole('table', { name: 'By barrier type' })
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent)
+    expect(headers).toEqual(['Barrier', 'Flagged', 'Approved', 'Routed', 'Dismissed'])
+    const [, first] = within(table).getAllByRole('row')
+    expect(within(first as HTMLElement).getByRole('rowheader')).toHaveTextContent(
       'Registration hold',
     )
+    const cells = within(first as HTMLElement)
+      .getAllByRole('cell')
+      .map((c) => c.textContent)
+    // registration_hold: 2 flagged, 1 approved (approved + edited), 0 routed, 0 dismissed
+    expect(cells).toEqual(['2', '1', '0', '0'])
     expect(await axe(container)).toHaveNoViolations()
   })
 

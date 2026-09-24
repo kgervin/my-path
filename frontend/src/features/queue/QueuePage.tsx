@@ -1,8 +1,9 @@
-import { useMemo, type ReactNode } from 'react'
+import { useId, useMemo, useState, type ReactNode } from 'react'
 import { Link, Outlet, useParams } from 'react-router'
 
 import { useFlags, useRun, useSummary } from '../../api/queries'
 import { Counters } from '../../components/Counters'
+import { Icon } from '../../components/Icon'
 import { PageHeading } from '../../components/PageHeading'
 import { EmptyState, ErrorState, Loading, SkeletonList } from '../../components/StateViews'
 import { FlagList } from './FlagList'
@@ -20,23 +21,32 @@ export function QueuePage() {
   const flags = useFlags(runId, queue.filters, ready)
 
   const list = useMemo(() => flags.data ?? [], [flags.data])
+  const [filtersOpen, setFiltersOpen] = useState(queue.active)
+  const filtersId = useId()
   useQueueNavigation(runId, list, flagId, queue.search)
 
   if (run.isPending) return <Loading label="Loading run…" />
   if (run.isError) return <ErrorState error={run.error} onRetry={() => void run.refetch()} />
 
   return (
-    <div className={flagId ? 'queue-layout queue-layout--detail' : 'queue-layout'}>
-      <div className="queue-layout__list">
-        <PageHeading title="Review queue" focusOnMount={!flagId}>
-          <p>
-            {run.data.filename} · {run.data.total_records} students checked ·{' '}
-            <Link to={`/runs/${runId}/summary`}>View summary</Link>
-          </p>
-        </PageHeading>
-        <RunProgress run={run.data} />
-        {summary.data ? <Counters counters={summary.data.counters} /> : null}
-        <QueueFilters {...queue} programs={summary.data?.programs ?? []} />
+    <div className={`queue-page${flagId ? ' queue-page--detail' : ''}`}>
+      <Counters counters={summary.data?.counters} />
+      <QueueHead
+        pending={summary.data?.counters.pending}
+        scanned={run.data.total_records}
+        shown={list.length}
+        runId={runId}
+        focus={!flagId}
+        filtersOpen={filtersOpen}
+        filtersId={filtersId}
+        filtered={queue.active}
+        onToggleFilters={() => setFiltersOpen((open) => !open)}
+      />
+      <RunProgress run={run.data} />
+      <div id={filtersId} hidden={!filtersOpen} className="queue-filters">
+        <QueueFilters {...queue} programs={summary.data?.programs} />
+      </div>
+      <QueueColumns detail={flagId !== undefined}>
         <QueueResults
           ready={ready}
           flags={flags}
@@ -46,9 +56,74 @@ export function QueuePage() {
         >
           <FlagList runId={runId} flags={list} selectedId={flagId} search={queue.search} />
         </QueueResults>
-      </div>
+      </QueueColumns>
+    </div>
+  )
+}
+
+/** "12 students need review", or a clear done state. */
+export function queueHeading(pending: number | undefined): string {
+  if (pending === undefined) return 'Review queue'
+  if (pending === 0) return 'Every student is reviewed'
+  return `${pending} ${pending === 1 ? 'student needs' : 'students need'} review`
+}
+
+interface HeadProps {
+  pending: number | undefined
+  scanned: number
+  shown: number
+  runId: string
+  focus: boolean
+  filtersOpen: boolean
+  filtersId: string
+  filtered: boolean
+  onToggleFilters: () => void
+}
+
+function QueueHead({
+  pending,
+  scanned,
+  shown,
+  runId,
+  focus,
+  filtersOpen,
+  filtersId,
+  filtered,
+  onToggleFilters,
+}: HeadProps) {
+  return (
+    <div className="queue-head">
+      <PageHeading
+        title={queueHeading(pending)}
+        documentTitle="Review queue"
+        kicker="Coach queue"
+        focusOnMount={focus}
+      >
+        <p>
+          {scanned} students scanned · {shown} shown ·{' '}
+          <Link to={`/runs/${runId}/summary`}>View summary</Link>
+        </p>
+      </PageHeading>
+      <button
+        type="button"
+        className="button button--secondary button--small queue-head__filter"
+        aria-expanded={filtersOpen}
+        aria-controls={filtersId}
+        onClick={onToggleFilters}
+      >
+        <Icon name="filter" size={16} /> Filter{filtered ? ' (on)' : ''}
+      </button>
+    </div>
+  )
+}
+
+/** List on the left, selected student on the right (stacked on phones). */
+function QueueColumns({ detail, children }: { detail: boolean; children: ReactNode }) {
+  return (
+    <div className={`queue-layout${detail ? ' queue-layout--detail' : ''}`}>
+      <div className="queue-layout__list">{children}</div>
       <div className="queue-layout__detail">
-        <DetailPane hasSelection={flagId !== undefined} />
+        <DetailPane hasSelection={detail} />
       </div>
     </div>
   )

@@ -31,11 +31,23 @@ _DESCRIPTIONS: dict[Barrier, str] = {
 }
 
 
+# "Suggested fix" column of the PRD barrier catalog, in coach-facing words.
+_FIXES: dict[Barrier, str] = {
+    Barrier.SMALL_BALANCE: "Share the payment plan link or emergency aid information.",
+    Barrier.REGISTRATION_HOLD: "Explain the hold and how to clear it.",
+    Barrier.FAILED_PAYMENT: "Ask them to update their payment method.",
+    Barrier.MISSING_AID_DOCUMENT: "Send the link to the specific aid form.",
+    Barrier.SILENT_STUDENT: "Send a friendly check-in message.",
+    Barrier.NOT_REGISTERED_NEXT_TERM: "Send a registration reminder with the advisor link.",
+}
+
+
 @dataclass(frozen=True, slots=True)
 class CatalogEntry:
     barrier: Barrier
     label: str
     description: str
+    suggested_fix: str
     routes_to: tuple[str, ...]
 
 
@@ -45,6 +57,7 @@ def catalog(thresholds: RuleThresholds) -> list[CatalogEntry]:
             barrier=b,
             label=_LABELS[b],
             description=_DESCRIPTIONS[b].format(t=thresholds),
+            suggested_fix=_FIXES[b],
             routes_to=tuple(r.value for r in BARRIER_ROUTES[b]),
         )
         for b in Barrier

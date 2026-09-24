@@ -14,7 +14,7 @@ import { DecisionFeedback } from './DecisionFeedback'
 import { DraftEditor } from './DraftEditor'
 import { ReviewDialogs, type OpenDialog } from './ReviewDialogs'
 import { useDecision } from './useDecision'
-import { WhyFlagged } from './WhyFlagged'
+import { DetectedBarriers, StudentHeader } from './WhyFlagged'
 
 const DEFAULT_MAX_WORDS = 120
 
@@ -74,12 +74,8 @@ function FlagReview({ flag, onReload }: { flag: FlagDetail; onReload: () => void
       <Link to={queueUrl} className="button button--link back-link">
         <Icon name="back" size={16} /> Back to queue
       </Link>
-      <h2 id="student-heading" ref={headingRef} tabIndex={-1}>
-        {flag.first_name} <span className="detail__id">{flag.student_id}</span>
-      </h2>
-      <p className="hint">{flag.program}</p>
-
-      <WhyFlagged flag={flag} />
+      <StudentHeader flag={flag} headingRef={headingRef} />
+      <DetectedBarriers flag={flag} />
       <DraftEditor
         flag={flag}
         value={draft}

@@ -4,6 +4,10 @@ import { usePageTitle } from '../hooks/usePageTitle'
 
 interface Props {
   title: string
+  /** Browser tab title when it should differ from the visible heading. */
+  documentTitle?: string
+  /** Small uppercase label above the heading, e.g. "Coach queue". */
+  kicker?: string
   /** Lets a surrounding landmark reference the heading (aria-labelledby). */
   id?: string
   children?: ReactNode
@@ -11,14 +15,22 @@ interface Props {
   focusOnMount?: boolean
 }
 
-export function PageHeading({ title, id, children, focusOnMount = true }: Props) {
+export function PageHeading({
+  title,
+  documentTitle,
+  kicker,
+  id,
+  children,
+  focusOnMount = true,
+}: Props) {
   const ref = useRef<HTMLHeadingElement>(null)
-  usePageTitle(title)
+  usePageTitle(documentTitle ?? title)
   useEffect(() => {
     if (focusOnMount) ref.current?.focus({ preventScroll: true })
   }, [focusOnMount])
   return (
     <div className="page-heading">
+      {kicker ? <p className="kicker">{kicker}</p> : null}
       <h1 ref={ref} id={id} tabIndex={-1}>
         {title}
       </h1>

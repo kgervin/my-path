@@ -5,10 +5,26 @@ import { Icon, type IconName } from './Icon'
 
 const DEFAULT_URGENT_DAYS = 7
 
+const BARRIER_ICONS: Record<string, string> = {
+  small_balance: '💰',
+  registration_hold: '🔒',
+  failed_payment: '💳',
+  missing_aid_document: '📄',
+  silent_student: '🔕',
+  not_registered_next_term: '📅',
+}
+
 export function BarrierChip({ barrier }: { barrier: string }) {
   const { data: meta } = useMeta()
   const label = meta?.barriers.find((b) => b.id === barrier)?.label ?? humanize(barrier)
-  return <span className="chip">{label}</span>
+  return (
+    <span className="chip">
+      <span className="chip__icon" aria-hidden="true">
+        {BARRIER_ICONS[barrier] ?? '•'}
+      </span>
+      {label}
+    </span>
+  )
 }
 
 const STATUS_ICONS: Record<FlagStatus, IconName> = {

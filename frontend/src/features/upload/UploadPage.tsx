@@ -1,13 +1,12 @@
 import { useId, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { api } from '../../api/client'
-import { useLatestRun, useMeta, useUpload } from '../../api/queries'
+import { useMeta, useUpload } from '../../api/queries'
 import { Icon } from '../../components/Icon'
 import { PageHeading } from '../../components/PageHeading'
 import { ErrorState } from '../../components/StateViews'
 import { checkCsv, type HeaderCheck } from '../../lib/csv'
-import { formatDateTime } from '../../lib/format'
 import { FilePicker } from './FilePicker'
 
 interface Selection {
@@ -15,122 +14,93 @@ interface Selection {
   check: HeaderCheck
 }
 
-/** Local calendar date as YYYY-MM-DD (toISOString would give the UTC date). */
 const HOW_IT_WORKS = [
   {
-    title: 'Rules flag barriers',
-    body: 'Holds, small balances, failed payments, missing aid forms, silence and next-term gaps.',
+    title: 'Upload',
+    body: 'Drop your student CSV. My Path checks every column before a single record is processed.',
   },
   {
-    title: 'Drafts in plain words',
-    body: 'Each student gets a one-sentence reason and a short, warm message at grade 8 or below.',
+    title: 'Detect',
+    body: 'Six transparent rules flag holds, small balances, failed payments, missing aid forms and more.',
   },
   {
-    title: 'You decide',
-    body: 'Approve, edit, route or dismiss. Every choice is logged, and you can always undo.',
+    title: 'Act',
+    body: 'Review the drafted outreach, edit freely, then approve, route or dismiss. One clear decision per student.',
   },
 ] as const
 
+/** Local calendar date as YYYY-MM-DD (toISOString would give the UTC date). */
 function today(): string {
   return new Date().toLocaleDateString('en-CA')
+}
+
+async function sampleFile(): Promise<File> {
+  const response = await fetch(api.sampleCsvUrl)
+  if (!response.ok) throw new Error('Sample data is unavailable right now.')
+  return new File([await response.text()], 'sample-200-students.csv', { type: 'text/csv' })
 }
 
 export function UploadPage() {
   const navigate = useNavigate()
   const { data: meta } = useMeta()
-  const { data: latest } = useLatestRun()
   const upload = useUpload()
   const [selection, setSelection] = useState<Selection | null>(null)
-  const [asOf, setAsOf] = useState(today)
   const hintId = useId()
-  const asOfId = useId()
 
   const onSelect = async (file: File) => {
     upload.reset()
     setSelection({ file, check: await checkCsv(file, meta?.required_columns ?? []) })
   }
 
+  const run = (file: File) =>
+    upload.mutate(
+      { file, asOf: today() },
+      { onSuccess: (created) => void navigate(`/runs/${created.id}`) },
+    )
+
+  const runSample = async () => run(await sampleFile())
+
   const ready =
     selection !== null && selection.check.missing.length === 0 && selection.check.rowCount > 0
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault()
-    if (!selection || !ready) return
-    upload.mutate(
-      { file: selection.file, asOf },
-      { onSuccess: (run) => void navigate(`/runs/${run.id}`) },
-    )
+    if (selection && ready) run(selection.file)
   }
 
   return (
     <>
       <section className="hero" aria-labelledby="upload-heading">
-        <ul className="hero__chips" aria-hidden="true">
-          <li>Registration hold</li>
-          <li>Missing aid document</li>
-          <li>Silent student</li>
-        </ul>
-        <PageHeading title="Upload student records" id="upload-heading">
+        <PageHeading
+          title="Surface students before they slip."
+          documentTitle="Upload student records"
+          id="upload-heading"
+        >
           <p>
-            My Path checks each student for six small, fixable barriers, explains what it found and
-            drafts a message for you to review. Nothing is sent automatically.
+            My Path detects fixable barriers, drafts outreach, and puts decisions in your hands, in
+            minutes, not hours.
           </p>
         </PageHeading>
+        <div className="hero__actions">
+          <button
+            type="button"
+            className="button button--hero"
+            disabled={upload.isPending}
+            onClick={() => void runSample()}
+          >
+            <Icon name="play" size={18} />
+            {upload.isPending ? 'Running My Path…' : 'Try sample data — 200 students'}
+          </button>
+          <a className="button button--hero-ghost" href="#upload">
+            <Icon name="upload" size={18} /> Upload CSV
+          </a>
+        </div>
       </section>
 
-      {latest ? (
-        <aside className="callout" aria-label="Latest run">
-          <p>
-            Latest run: <strong>{latest.filename}</strong>, uploaded{' '}
-            {formatDateTime(latest.created_at)} · {latest.flagged_count} flagged.
-          </p>
-          <Link className="button button--secondary" to={`/runs/${latest.id}`}>
-            Continue reviewing <Icon name="next" size={16} />
-          </Link>
-        </aside>
-      ) : null}
-
-      <form className="card stack" onSubmit={onSubmit} aria-describedby={hintId}>
-        <p id={hintId} className="hint">
-          Use a UTF-8 CSV with one row per student.{' '}
-          <a href={api.sampleCsvUrl} download>
-            Download a sample CSV
-          </a>{' '}
-          with 200 synthetic students.
-        </p>
-
-        <FilePicker onSelect={(file) => void onSelect(file)} describedBy={hintId} />
-
-        {selection ? <ColumnCheck selection={selection} /> : null}
-
-        <details className="disclosure">
-          <summary>Options</summary>
-          <div className="field">
-            <label htmlFor={asOfId}>Check barriers as of</label>
-            <input
-              id={asOfId}
-              type="date"
-              value={asOf}
-              onChange={(e) => setAsOf(e.target.value)}
-              required
-            />
-            <p className="hint">Days to drop are counted from this date. Usually today.</p>
-          </div>
-        </details>
-
-        {upload.isError ? <ErrorState error={upload.error} /> : null}
-
-        <button
-          type="submit"
-          className="button button--primary button--large"
-          disabled={!ready || upload.isPending}
-        >
-          {upload.isPending ? 'Running My Path…' : 'Run My Path'}
-        </button>
-      </form>
-
       <section aria-labelledby="how-heading" className="stack">
-        <h2 id="how-heading">How it works</h2>
+        <h2 id="how-heading" className="kicker">
+          How it works
+        </h2>
         <ol className="features">
           {HOW_IT_WORKS.map((step, index) => (
             <li key={step.title} className="feature">
@@ -146,18 +116,49 @@ export function UploadPage() {
         </ol>
       </section>
 
-      {meta ? (
-        <details className="disclosure">
-          <summary>Which columns does the file need?</summary>
-          <ul className="columns-list">
-            {meta.required_columns.map((column) => (
-              <li key={column}>
-                <code>{column}</code>
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
+      <section id="upload" className="card stack upload-card" aria-labelledby="upload-card-heading">
+        <div>
+          <h2 id="upload-card-heading">Upload student records</h2>
+          <p id={hintId} className="hint">
+            CSV file with the required columns. We validate it before processing.
+          </p>
+        </div>
+        <form className="stack" onSubmit={onSubmit} aria-describedby={hintId}>
+          <FilePicker onSelect={(file) => void onSelect(file)} describedBy={hintId} />
+          {selection ? <ColumnCheck selection={selection} /> : null}
+          {upload.isError ? <ErrorState error={upload.error} /> : null}
+          <div className="upload-card__actions">
+            <button
+              type="submit"
+              className="button button--primary button--large"
+              disabled={!ready || upload.isPending}
+            >
+              <Icon name="play" size={16} />
+              {upload.isPending ? 'Running My Path…' : 'Run My Path'}
+            </button>
+            <button
+              type="button"
+              className="button button--link"
+              disabled={upload.isPending}
+              onClick={() => void runSample()}
+            >
+              Use sample data instead
+            </button>
+          </div>
+        </form>
+        {meta ? (
+          <details className="disclosure">
+            <summary>Required CSV columns</summary>
+            <ul className="columns-list">
+              {meta.required_columns.map((column) => (
+                <li key={column}>
+                  <code>{column}</code>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+      </section>
     </>
   )
 }

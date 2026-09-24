@@ -9,9 +9,8 @@ guarantees the product is built around.
 
 ## Decision
 - **Colors:** the official ASU palette ([brand guide](https://brandguide.asu.edu/brand-elements/design/color)).
-  Maroon `#8C1D40` leads in light mode; Gold `#FFC627` leads in dark mode, where it has 10:1+
-  contrast. Gold is never text on white and white is never on gold (ASU rule, and it fails
-  contrast). Status colors are darkened (light) or lightened (dark) variants that pass AA.
+  Maroon `#8C1D40` leads. Gold is never text on white and white is never on gold (ASU rule, and it fails
+  contrast). Status colors are darkened variants that pass AA.
 - **Materials:** Apple's Liquid Glass guidance: glass only for the floating functional layer
   (navigation bar, phone action bar, toasts, dialogs), never for content. It uses the "regular"
   variant (blur + saturation + a near-opaque tint) because these components carry text. Cards,
@@ -23,15 +22,35 @@ guarantees the product is built around.
   own, not an ASU logo.
 
 ## Consequences
-Axe (WCAG 2.2 AA) now runs in CI on a light phone, a **dark** phone and a desktop viewport.
-New colors must be added as tokens and contrast-checked in both themes.
+Axe (WCAG 2.2 AA) runs in CI on a phone and a desktop viewport.
+New colors must be added as tokens and contrast-checked.
 
 ## Update (2026-09-24): visual refresh from the Figma Make prototype
 - **Type:** Plus Jakarta Sans (variable, self-hosted via `@fontsource`, so the CSP stays
   `default-src 'self'`) for display; system SF for body text.
 - **Layout:** joined panels with hairline dividers (stat strip, student list, "How it works"),
   a larger and tighter hero headline, initials avatars, and a large "days left" figure in three
-  urgency tiers (critical, warning, normal). Each tier's color passes AA in both themes, and
+  urgency tiers (critical, warning, normal). Each tier's color passes AA, and
   screen readers get the full sentence ("Urgent: 3 days to drop").
 - **Kept official ASU Maroon `#8C1D40`**; the prototype's `#c41e4a` is not an ASU color.
-- **No eyebrow labels** (small uppercase kickers above headings) anywhere, by product decision.
+
+## Update (2026-09-24): white, Netflix-and-Apple layout
+Supersedes the dark theme and the eyebrow rule above.
+- **Light only, white background.** The dark theme is removed (`color-scheme: light`); content
+  sits on `#ffffff` with `#f6f6f7` secondary surfaces. The one dark surface is a cinematic,
+  Netflix-style maroon-to-black hero on the home page; the rest is Apple-clean white.
+- **No gold edge lines** on buttons, pills, avatars or badges (the "eyebrow" the product owner
+  ruled out). Gold is left only as a token and the text-selection color.
+- **Uppercase kicker labels are allowed** ("COACH QUEUE", "HOW IT WORKS"), in maroon.
+- **Home page trimmed** to the hero, "How it works" and the upload card. Tags, the latest-run
+  callout and the date picker are gone; runs use today's date.
+- **Screens follow the prototype:** a five-part counter strip, a queue heading that states the
+  work left ("N students need review") with filters behind a Filter button, a student header
+  card, and one "Detected barriers" card per finding. Each card shows the suggested fix and
+  only that barrier's source fields (the API now returns `findings` and `suggested_fix`).
+- Axe now runs on a phone and a desktop viewport (the dark phone project is removed).
+- **Smaller corners:** radii are 6/8/12/14 px (was 10/16/24/28). Buttons, nav links and inputs
+  are rounded rectangles; only chips and badges stay pill-shaped.
+- **Help page layout:** section links, numbered "How it works" steps, a barrier grid (rendered
+  from `/meta` so it matches the live thresholds), a status grid, a shortcut list and a tinted
+  privacy and safety callout. The content is unchanged; only the layout is new.

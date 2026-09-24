@@ -88,6 +88,9 @@ async def test_detail_shows_explanation_sources_and_draft(
     flag = await _first_flag(client, run["id"])
     assert flag["explanation"]
     assert "drop_date" in flag["source_fields"]
+    assert flag["findings"], "each barrier should come with its own source fields"
+    assert {f["barrier"] for f in flag["findings"]} == set(flag["barrier_types"])
+    assert all(f["source_fields"] for f in flag["findings"])
     assert flag["draft_message"] == flag["original_draft"]
     assert flag["draft_source"] == "template"
     assert flag["actions"] == []
@@ -224,6 +227,7 @@ async def test_meta_and_sample_data(client: httpx.AsyncClient) -> None:
     assert meta["required_columns"][0] == "student_id"
     assert len(meta["barriers"]) == 6
     assert "$1,000" in meta["barriers"][0]["description"]
+    assert all(b["suggested_fix"] for b in meta["barriers"])
     sample = await client.get("/api/v1/sample-data.csv?rows=10")
     assert sample.headers["content-type"].startswith("text/csv")
     assert len(sample.text.strip().splitlines()) == 11
