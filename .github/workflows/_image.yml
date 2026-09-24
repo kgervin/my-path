@@ -53,6 +53,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ inputs.component }}
           provenance: mode=max
           sbom: true
+          build-args: GIT_SHA=${{ github.sha }} # reported by /healthz so deploys can be verified
       - name: Vulnerability scan (fail on fixable critical/high)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:

@@ -14,7 +14,9 @@ COPY alembic.ini README.md LICENSE ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra tracing
 
 FROM python:3.14-slim AS runtime
-LABEL org.opencontainers.image.title="my-path-api" \
+ARG GIT_SHA=dev
+LABEL org.opencontainers.image.revision=$GIT_SHA \
+      org.opencontainers.image.title="my-path-api" \
       org.opencontainers.image.description="My Path API" \
       org.opencontainers.image.licenses="MIT"
 # The app runs from /app/.venv (built by uv, no pip). Remove the base image's own packaging
@@ -27,6 +29,8 @@ RUN rm -rf /usr/local/lib/python3*/site-packages/pip* \
  && groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app
 WORKDIR /app
 COPY --from=build --chown=app:app /app /app
+ARG GIT_SHA=dev
+ENV MY_PATH_RELEASE=$GIT_SHA
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \

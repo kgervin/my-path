@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/healthz")
-async def healthz() -> dict[str, str]:
+async def healthz(container: ContainerDep) -> dict[str, str]:
     """Liveness: the process is up. Never checks dependencies (avoids restart storms)."""
-    return {"status": "ok"}
+    return {"status": "ok", "release": container.settings.release}
 
 
 @router.get("/readyz")

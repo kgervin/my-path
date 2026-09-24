@@ -32,7 +32,7 @@ jobs:
       - name: Format
         run: uv run ruff format --check .
       - name: Lint
-        run: uv run ruff check --output-format=github .
+        run: uv run ruff check --output-format=github . ../scripts && uv run ruff format --check ../scripts
       - name: Types
         run: uv run mypy src tests
       - name: Tests (coverage gate 90%)
