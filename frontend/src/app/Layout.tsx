@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router'
 
+import { Icon } from '../components/Icon'
 import { Toasts } from '../components/Toasts'
 import { CoachNameField } from './CoachNameField'
 
@@ -73,6 +74,11 @@ export function Layout() {
       <footer className="site-footer">
         <p>Synthetic data only. Nothing is sent to students: a coach approves every message.</p>
       </footer>
+      {current === 'help' ? null : (
+        <Link to="/help" className="help-fab" aria-label="Help">
+          <Icon name="help" size={22} />
+        </Link>
+      )}
       <Toasts />
     </>
   )

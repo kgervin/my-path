@@ -28,6 +28,7 @@ async def meta(container: ContainerDep) -> MetaOut:
                 id=e.barrier.value,
                 label=e.label,
                 description=e.description,
+                suggested_fix=e.suggested_fix,
                 routes_to=list(e.routes_to),
             )
             for e in catalog(settings.thresholds)

@@ -32,8 +32,12 @@ describe('QueuePage', () => {
     expect(items[0]).toHaveTextContent('Urgent: 3 days to drop')
     expect(items[1]).not.toHaveTextContent('Urgent')
     expect(screen.getByText('Showing 2 of 2 flagged students')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: '1 student needs review' }),
+    ).toBeInTheDocument()
+    expect(document.title).toBe('Review queue · My Path')
     const counters = screen.getByRole('region', { name: 'Progress this run' })
-    expect(within(counters).getByText('Needs review').nextSibling).toHaveTextContent('1')
+    expect(within(counters).getByText('Pending review').nextSibling).toHaveTextContent('1')
     expect(await axe(container)).toHaveNoViolations()
   })
 
@@ -42,6 +46,10 @@ describe('QueuePage', () => {
     const user = userEvent.setup()
     const { router } = renderRoute('/runs/run-1')
     await screen.findByRole('list', { name: /Flagged students/ })
+    const toggle = screen.getByRole('button', { name: /^Filter/ })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
     await user.selectOptions(screen.getByLabelText('Barrier'), 'failed_payment')
     expect(await screen.findByText('No students match these filters')).toBeInTheDocument()
     expect(router.state.location.search).toBe('?barrier=failed_payment')

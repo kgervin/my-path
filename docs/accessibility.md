@@ -1,6 +1,6 @@
 # Accessibility
 
-**Target:** WCAG 2.2 level AA on phones, tablets and desktops, in light and dark mode.
+**Target:** WCAG 2.2 level AA on phones, tablets and desktops.
 
 ## What we do
 
@@ -23,7 +23,7 @@
 1. **Lint:** oxlint `jsx-a11y` rules fail the build.
 2. **Unit:** `vitest-axe` checks every page in jsdom.
 3. **End to end:** Playwright runs axe with the WCAG 2.0/2.1/2.2 A and AA rule sets on a Pixel 7
-   (light and dark) and a 1280 px desktop, and checks for horizontal overflow.
+   and a 1280 px desktop, and checks for horizontal overflow.
 4. **Manual (each release):** keyboard-only pass, VoiceOver (iOS/macOS) and NVDA (Windows) pass
    of the upload → review → approve flow, and 200% zoom.
 
