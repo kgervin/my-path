@@ -45,7 +45,7 @@ jobs:
         run: uv run alembic upgrade head && uv run alembic check
       - name: Dependency audit
         run: uvx pip-audit --strict --progress-spinner off -r <(uv export --frozen --no-dev --no-hashes --no-emit-project)
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-coverage
@@ -99,7 +99,7 @@ jobs:
         working-directory: frontend
       - run: npm run e2e
         working-directory: frontend
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report

@@ -40,7 +40,7 @@ jobs:
             my-path-api=ghcr.io/${{ github.repository_owner }}/my-path-api@${{ needs.api.outputs.digest }} \
             my-path-web=ghcr.io/${{ github.repository_owner }}/my-path-web@${{ needs.web.outputs.digest }}
           kustomize build . > ../../../../rendered-staging.yaml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: rendered-staging
           path: rendered-staging.yaml
@@ -73,7 +73,7 @@ jobs:
             my-path-api=ghcr.io/${{ github.repository_owner }}/my-path-api@${{ needs.api.outputs.digest }} \
             my-path-web=ghcr.io/${{ github.repository_owner }}/my-path-web@${{ needs.web.outputs.digest }}
           kustomize build . > ../../../../rendered-production.yaml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: rendered-production
           path: rendered-production.yaml
