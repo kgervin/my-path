@@ -48,7 +48,7 @@ flowchart LR
 
 ## Quick start
 
-Requirements: Python 3.12+ with [uv](https://docs.astral.sh/uv/), Node 22+.
+Requirements: Python 3.12+ (3.14 in production) with [uv](https://docs.astral.sh/uv/), Node 24 LTS.
 
 ```bash
 make install

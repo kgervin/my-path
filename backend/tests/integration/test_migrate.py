@@ -22,7 +22,11 @@ def test_upgrade_to_head_creates_schema_and_is_idempotent(
         upgrade_to_head(ALEMBIC_INI)  # second run is a no-op
     finally:
         get_settings.cache_clear()
-    tables = set(sa.inspect(sa.create_engine(f"sqlite:///{db}")).get_table_names())
+    engine = sa.create_engine(f"sqlite:///{db}")
+    try:
+        tables = set(sa.inspect(engine).get_table_names())
+    finally:
+        engine.dispose()
     assert {"runs", "flags", "action_logs", "alembic_version"} <= tables
 
 

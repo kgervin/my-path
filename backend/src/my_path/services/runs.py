@@ -79,7 +79,11 @@ class RunService:
             async with self._sessionmaker() as session:
                 pending = await Repository(session).undrafted_flags(run_id)
             limit = asyncio.Semaphore(self._settings.llm_max_concurrency)
-            await asyncio.gather(*(self._draft_one(flag, limit) for flag in pending))
+            # TaskGroup cancels in-flight drafts as soon as one fails (gather would leave
+            # them running, holding connections after the run is marked failed).
+            async with asyncio.TaskGroup() as group:
+                for flag in pending:
+                    group.create_task(self._draft_one(flag, limit))
             await self._set_status(run_id, RunStatus.READY)
         except Exception:
             logger.exception("run_drafting_failed", extra={"run_id": run_id})
