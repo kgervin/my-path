@@ -17,7 +17,14 @@ FROM python:3.14-slim AS runtime
 LABEL org.opencontainers.image.title="my-path-api" \
       org.opencontainers.image.description="My Path API" \
       org.opencontainers.image.licenses="MIT"
-RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app
+# The app runs from /app/.venv (built by uv, no pip). Remove the base image's own packaging
+# tools: unused at runtime, and they bundle packages that carry CVEs (e.g. pip's vendored
+# msgpack, ensurepip's setuptools wheel). Smaller image, smaller attack surface.
+RUN rm -rf /usr/local/lib/python3*/site-packages/pip* \
+           /usr/local/lib/python3*/site-packages/setuptools* \
+           /usr/local/lib/python3*/ensurepip \
+           /usr/local/bin/pip* \
+ && groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app
 WORKDIR /app
 COPY --from=build --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH" \
