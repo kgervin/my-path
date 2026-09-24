@@ -3,6 +3,8 @@ name = "my-path-api"
 version = "0.1.0"
 description = "My Path API: detects small, fixable barriers for online learners and drafts coach outreach."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115",

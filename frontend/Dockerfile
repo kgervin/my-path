@@ -8,7 +8,8 @@ RUN npm run build
 
 # Unprivileged nginx: listens on 8080, runs as uid 101, no root needed.
 FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
-LABEL org.opencontainers.image.title="my-path-web"
+LABEL org.opencontainers.image.title="my-path-web" \
+      org.opencontainers.image.licenses="MIT"
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 ENV API_UPSTREAM=http://api:8000
