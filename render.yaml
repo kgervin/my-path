@@ -34,7 +34,7 @@ services:
     autoDeployTrigger: checksPass
     envVars:
       - key: NODE_VERSION
-        value: "22"
+        value: "24"
     routes:
       # Same-origin API: the browser calls /api/*, Render proxies to the API service.
       # If Render gives the API a different URL (name taken), update this destination.

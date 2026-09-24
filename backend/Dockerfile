@@ -2,7 +2,7 @@
 # Multi-stage build: dependencies are resolved from the lockfile, the runtime image has no
 # build tools, runs as a non-root user and ships only the virtualenv + source.
 
-FROM python:3.12-slim AS build
+FROM python:3.14-slim AS build
 COPY --from=ghcr.io/astral-sh/uv:0.5 /uv /usr/local/bin/uv
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
@@ -13,7 +13,7 @@ COPY migrations ./migrations
 COPY alembic.ini README.md LICENSE ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra tracing
 
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 LABEL org.opencontainers.image.title="my-path-api" \
       org.opencontainers.image.description="My Path API" \
       org.opencontainers.image.licenses="MIT"
