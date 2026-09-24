@@ -28,6 +28,37 @@ export function StatusBadge({ status }: { status: FlagStatus }) {
   )
 }
 
+type Tier = 'critical' | 'warning' | 'normal'
+const WARNING_DAYS = 14
+
+function tierFor(days: number, urgentDays: number): Tier {
+  if (isUrgent(days, urgentDays)) return 'critical'
+  return days <= WARNING_DAYS ? 'warning' : 'normal'
+}
+
+/**
+ * Large "days left" figure for scanning the queue. Screen readers get the same sentence as
+ * DaysToDrop ("Urgent: 3 days to drop"); the big number is visual only.
+ */
+export function DaysLeft({ days }: { days: number }) {
+  const { data: meta } = useMeta()
+  const tier = tierFor(days, meta?.urgent_days ?? DEFAULT_URGENT_DAYS)
+  return (
+    <span className={`days-left days-left--${tier}`}>
+      <span className="visually-hidden">
+        {tier === 'critical' ? 'Urgent: ' : ''}
+        {daysLabel(days)}
+      </span>
+      <span className="days-left__num" aria-hidden="true">
+        {days < 0 ? '!' : days}
+      </span>
+      <span className="days-left__unit" aria-hidden="true">
+        {days < 0 ? 'passed' : days === 1 ? 'day left' : 'days left'}
+      </span>
+    </span>
+  )
+}
+
 /** Red only when under the urgent threshold, and always with text + icon (not colour alone). */
 export function DaysToDrop({ days }: { days: number }) {
   const { data: meta } = useMeta()

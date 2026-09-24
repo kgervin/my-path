@@ -65,7 +65,11 @@ export function UploadPage() {
   return (
     <>
       <section className="hero" aria-labelledby="upload-heading">
-        <span className="eyebrow">For ASU Online success coaches</span>
+        <ul className="hero__chips" aria-hidden="true">
+          <li>Registration hold</li>
+          <li>Missing aid document</li>
+          <li>Silent student</li>
+        </ul>
         <PageHeading title="Upload student records" id="upload-heading">
           <p>
             My Path checks each student for six small, fixable barriers, explains what it found and
@@ -131,7 +135,7 @@ export function UploadPage() {
           {HOW_IT_WORKS.map((step, index) => (
             <li key={step.title} className="feature">
               <span className="feature__step" aria-hidden="true">
-                {index + 1}
+                {String(index + 1).padStart(2, '0')}
               </span>
               <div>
                 <p className="feature__title">{step.title}</p>
