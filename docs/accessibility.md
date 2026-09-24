@@ -14,6 +14,7 @@
 | Colour | Text meets 4.5:1 (large text and UI parts 3:1) in both themes. Colour is never the only cue: urgency, status and file checks pair text with an icon, plus hidden "Urgent:" text for screen readers. |
 | Touch | Targets are at least 44 × 44 CSS px (WCAG 2.5.8 needs 24). |
 | Motion | `prefers-reduced-motion` disables animation. |
+| Transparency | Liquid Glass surfaces (nav, action bar, toasts, dialogs) turn solid under `prefers-reduced-transparency`, `prefers-contrast: more`, or without `backdrop-filter` support; `forced-colors` adds borders. |
 | Reflow | Mobile-first layout works down to 320 px with no horizontal scrolling (tested in CI). |
 | Language | `lang="en"` on the page; plain language at grade 8 or lower in UI copy and drafts. |
 
@@ -22,7 +23,7 @@
 1. **Lint:** oxlint `jsx-a11y` rules fail the build.
 2. **Unit:** `vitest-axe` checks every page in jsdom.
 3. **End to end:** Playwright runs axe with the WCAG 2.0/2.1/2.2 A and AA rule sets on a Pixel 7
-   and a 1280 px desktop, and checks for horizontal overflow.
+   (light and dark) and a 1280 px desktop, and checks for horizontal overflow.
 4. **Manual (each release):** keyboard-only pass, VoiceOver (iOS/macOS) and NVDA (Windows) pass
    of the upload → review → approve flow, and 200% zoom.
 
