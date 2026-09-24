@@ -31,11 +31,17 @@ export function Layout() {
       <header className="site-header">
         <div className="site-header__inner">
           <Link to="/" className="brand" aria-label="My Path home">
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 32 32">
+            <svg
+              className="brand__mark"
+              aria-hidden="true"
+              width="30"
+              height="30"
+              viewBox="0 0 32 32"
+            >
               <rect width="32" height="32" rx="8" fill="currentColor" />
               <path
                 d="M8 24c4-10 12-6 16-16"
-                stroke="var(--color-accent)"
+                stroke="#FFC627"
                 strokeWidth="3.5"
                 fill="none"
                 strokeLinecap="round"

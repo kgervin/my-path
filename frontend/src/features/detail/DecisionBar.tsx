@@ -30,7 +30,7 @@ export function DecisionBar(props: Props) {
   }, [flag.status])
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className="decision-slot">
       {flag.status === 'new' ? <OpenActions {...props} /> : <Decided {...props} />}
     </div>
   )
