@@ -51,6 +51,6 @@ Supersedes the dark theme and the eyebrow rule above.
 - Axe now runs on a phone and a desktop viewport (the dark phone project is removed).
 - **Smaller corners:** radii are 6/8/12/14 px (was 10/16/24/28). Buttons, nav links and inputs
   are rounded rectangles; only chips and badges stay pill-shaped.
-- **Help & reference page:** section links, numbered getting-started steps, a barrier rule grid
-  (trigger, suggested action, where it goes; rendered from `/meta` so it matches the live
-  thresholds), a CSV column reference table, a native `<details>` FAQ and a support callout.
+- **Help page layout:** section links, numbered "How it works" steps, a barrier grid (rendered
+  from `/meta` so it matches the live thresholds), a status grid, a shortcut list and a tinted
+  privacy and safety callout. The content is unchanged; only the layout is new.

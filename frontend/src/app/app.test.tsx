@@ -28,9 +28,7 @@ describe('app shell', () => {
   it('has a skip link, landmarks and marks the current section', async () => {
     mockApi([get(/\/meta$/, () => meta), get(/\/runs\/latest$/, () => run)])
     const { container } = renderRoute('/help')
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Help & reference' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Help' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Skip to main content' })).toHaveAttribute(
       'href',
       '#main',
