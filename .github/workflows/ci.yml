@@ -118,6 +118,9 @@ jobs:
           for overlay in staging production; do
             kubectl kustomize deploy/k8s/overlays/$overlay | ./kubeconform -strict -summary -kubernetes-version 1.31.0 -
           done
+      - uses: astral-sh/setup-uv@v6
+      - name: Validate Render blueprint
+        run: uvx check-jsonschema --schemafile https://render.com/schema/render.yaml.json render.yaml
       - name: Check and unit-test Prometheus alerts
         run: |
           docker run --rm -v "$PWD/ops/prometheus:/p" -w /p --entrypoint promtool prom/prometheus:v2.55.0 check config prometheus.yml
