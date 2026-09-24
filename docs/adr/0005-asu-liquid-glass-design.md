@@ -49,3 +49,8 @@ Supersedes the dark theme and the eyebrow rule above.
   card, and one "Detected barriers" card per finding. Each card shows the suggested fix and
   only that barrier's source fields (the API now returns `findings` and `suggested_fix`).
 - Axe now runs on a phone and a desktop viewport (the dark phone project is removed).
+- **Smaller corners:** radii are 6/8/12/14 px (was 10/16/24/28). Buttons, nav links and inputs
+  are rounded rectangles; only chips and badges stay pill-shaped.
+- **Help & reference page:** section links, numbered getting-started steps, a barrier rule grid
+  (trigger, suggested action, where it goes; rendered from `/meta` so it matches the live
+  thresholds), a CSV column reference table, a native `<details>` FAQ and a support callout.

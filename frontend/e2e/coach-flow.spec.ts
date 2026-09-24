@@ -53,7 +53,7 @@ test('coach uploads, reviews and approves outreach end to end', async ({ page, r
 
 test('help page is accessible', async ({ page }) => {
   await page.goto('/help')
-  await expect(page.getByRole('heading', { level: 1, name: 'Help' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Help & reference' })).toBeVisible()
   await expectAccessible(page)
 })
 
