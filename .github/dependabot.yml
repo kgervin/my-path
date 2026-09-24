@@ -20,6 +20,9 @@ updates:
     # Actions are pinned to commit SHAs (`uses: owner/action@<sha> # vX.Y.Z`); Dependabot
     # updates the SHA and the comment together. Minor/patch bumps arrive as one PR.
     groups:
+      # init/analyze (and upload-sarif) must always be the same CodeQL version.
+      codeql:
+        patterns: ["github/codeql-action*"]
       actions-minor: { update-types: [minor, patch] }
   - package-ecosystem: docker
     directories: [/backend, /frontend]
