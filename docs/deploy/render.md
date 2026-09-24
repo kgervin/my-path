@@ -34,7 +34,7 @@ validates it against Render's schema on every pull request.
    `render.yaml`. (Pointing it at a Dockerfile gives
    `cannot unmarshal !!str 'FROM py…' into file.Spec`.)
 3. Render asks for `MY_PATH_DATABASE_URL`: paste the converted string from step 1.
-4. Click **Deploy Blueprint**. The API runs `alembic upgrade head` on start, then goes live when
+4. Click **Deploy Blueprint**. The API applies migrations on start (`MY_PATH_MIGRATE_ON_START=true`), then goes live when
    `/readyz` reports the database is up.
 
 ## 3. Check it

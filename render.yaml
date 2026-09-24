@@ -11,8 +11,6 @@ services:
     rootDir: backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    # Free instances have no pre-deploy step guarantee; migrate on start (idempotent).
-    dockerCommand: sh -c "alembic upgrade head && exec python -m my_path"
     healthCheckPath: /readyz
     autoDeployTrigger: checksPass # deploy only after GitHub CI is green
     envVars:
@@ -20,6 +18,8 @@ services:
         sync: false # entered once in the dashboard, never committed
       - key: MY_PATH_ENVIRONMENT
         value: production
+      - key: MY_PATH_MIGRATE_ON_START # alembic upgrade head before serving (idempotent)
+        value: "true"
       - key: MY_PATH_DRAFTER
         value: template
       - key: PORT
