@@ -13,16 +13,19 @@ validates it against Render's schema on every pull request.
 
 ## 1. Create the database (Neon)
 
-1. Sign up at [neon.tech](https://neon.tech) and create a project (region **US West (Oregon)** to
-   match Render's `oregon`).
-2. Click **Connect**, leave connection pooling **off**, and copy the connection string.
+1. Sign up at [neon.tech](https://neon.tech) and create a project in **US East (Ohio)**
+   (`us-east-2`), the same region as the API (`ohio` in `render.yaml`).
+2. Click **Connect**, turn connection pooling **off**, and copy the connection string. The host
+   must not contain `-pooler`: Neon's pooler (PgBouncer, transaction mode) breaks asyncpg's
+   prepared statements.
 3. Change it to the API's format:
    - start: `postgresql://` → `postgresql+asyncpg://`
    - end: replace everything after `?` with `ssl=require`
 
    Result: `postgresql+asyncpg://USER:PASSWORD@HOST/DB?ssl=require`.
-   On macOS, with the Neon string copied, this prints the converted value:
-   `pbpaste | sed -E 's#^postgres(ql)?://#postgresql+asyncpg://#; s#\?.*$#?ssl=require#'`
+   On macOS, with the Neon string copied, this converts it in place on the clipboard without
+   printing the password:
+   `pbpaste | sed -E 's#^postgres(ql)?://#postgresql+asyncpg://#; s#\?.*$#?ssl=require#' | pbcopy`
 
 ## 2. Deploy the Blueprint (Render)
 
@@ -54,6 +57,7 @@ name was taken), update the `/api/*` destination in `render.yaml` to that URL an
 | Symptom | Fix |
 | --- | --- |
 | Deploy fails at `alembic upgrade head` | `MY_PATH_DATABASE_URL` is wrong: needs `postgresql+asyncpg://` and `?ssl=require` (not `sslmode`). |
+| Intermittent `prepared statement ... does not exist` | The URL uses Neon's pooled host (`-pooler`). Use the direct host. |
 | Health check fails on `/readyz` | Neon compute is suspended or the URL is wrong. Open the Neon console; it wakes on connect. |
 | UI shows "Connection problem" | The API is waking from sleep (wait a minute) or the `/api/*` rewrite points at the wrong URL. |
 | First load is slow | Expected on the free plan after 15 minutes idle. |
