@@ -30,3 +30,6 @@ test-results/
 !.env.example
 kubeconfig
 rendered-*.yaml
+
+# Local editor/agent launch config
+.claude/
