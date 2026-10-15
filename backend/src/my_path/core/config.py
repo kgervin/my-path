@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     max_rows: int = 5000
 
     drafter: Literal["template", "anthropic"] = "template"
+    # Secret, set only in the host's dashboard. Without it the anthropic drafter falls back to
+    # templates, so turning the drafter on can never break a run.
+    anthropic_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("MY_PATH_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
+    )
     anthropic_model: str = "claude-opus-5"
     anthropic_timeout_seconds: float = 30.0
     llm_max_concurrency: int = 8

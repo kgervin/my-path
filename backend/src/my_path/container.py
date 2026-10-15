@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 import anthropic
@@ -14,6 +15,8 @@ from my_path.services.drafting.service import DraftingService
 from my_path.services.drafting.template_drafter import TemplateDrafter
 from my_path.services.runs import RunService
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass(slots=True)
 class Container:
@@ -25,7 +28,13 @@ class Container:
 
 def build_drafter(settings: Settings) -> Drafter:
     if settings.drafter == "anthropic":
-        client = anthropic.AsyncAnthropic(timeout=settings.anthropic_timeout_seconds)
+        if settings.anthropic_api_key is None:
+            logger.warning("anthropic_key_missing", extra={"fallback": "template"})
+            return TemplateDrafter()
+        client = anthropic.AsyncAnthropic(
+            api_key=settings.anthropic_api_key.get_secret_value(),
+            timeout=settings.anthropic_timeout_seconds,
+        )
         return AnthropicDrafter(client, settings.anthropic_model)
     return TemplateDrafter()
 

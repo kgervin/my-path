@@ -64,7 +64,7 @@ Production-like stack with Docker: `make up`, then open http://localhost:8080. A
 `--profile observability` for Prometheus (:9090) and Grafana (:3000).
 
 To draft with Claude instead of templates, set `MY_PATH_DRAFTER=anthropic` and
-`ANTHROPIC_API_KEY`. For a pilot, point this at an ASU-approved endpoint that does not
+`ANTHROPIC_API_KEY` (the hosted environments do; without a key the API falls back to templates). For a pilot, point this at an ASU-approved endpoint that does not
 retain data.
 
 ## Repository layout

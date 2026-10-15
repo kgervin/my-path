@@ -52,6 +52,10 @@ Order matters: the images must exist and be public before Render can pull them.
    gh secret set RENDER_DEPLOY_HOOK_API --env production -R kgervin/my-path
    ```
 6. **Turn deploys on**: `gh variable set RENDER_DEPLOY_ENABLED --body true -R kgervin/my-path`
+7. **AI drafting** (each API → **Environment** → `ANTHROPIC_API_KEY`): paste an Anthropic API key
+   and save. `MY_PATH_DRAFTER=anthropic` is already set by the Blueprint. Without a key the API
+   uses the reviewed templates instead, so this step can come later. Check it worked with
+   `curl https://my-path-api-staging.onrender.com/readyz`, which reports `"drafter": "anthropic"`.
 
 ## Everyday use
 
@@ -64,6 +68,9 @@ Order matters: the images must exist and be public before Render can pull them.
   It redeploys that tag's digest and moves `release` back. Migrations are expand-then-contract
   (see the runbook), so the previous version runs against the current schema.
 - **Check what is live**: `curl https://my-path-api.onrender.com/healthz` returns the commit.
+- **Trial file for testers**: `curl -o my-path-trial.csv https://my-path-api.onrender.com/api/v1/sample-data.csv`
+  downloads 200 synthetic students with drop dates counted from today. Share the file; testers
+  upload it on the home page. Make a fresh one every week or two so the drop dates stay ahead.
 
 ## Troubleshooting
 
@@ -75,4 +82,5 @@ Order matters: the images must exist and be public before Render can pull them.
 | "No image for <sha>" on a tag | The tagged commit never finished Release on `main`. Tag a commit that passed staging. |
 | `cosign verify` fails | The image wasn't built by this repo's `_image.yml` on `main`. Don't deploy it. |
 | Intermittent `prepared statement ... does not exist` | The URL uses Neon's pooled host (`-pooler`). Use the direct host. |
+| `/readyz` says `"drafter": "template"` | `ANTHROPIC_API_KEY` is missing on that service (step 7), or `MY_PATH_DRAFTER` isn't `anthropic`. |
 | UI shows "Connection problem" | The API is waking up (wait a minute) or the `/api/*` rewrite points at the wrong service. |

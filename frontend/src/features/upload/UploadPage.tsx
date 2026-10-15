@@ -1,7 +1,6 @@
 import { useId, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 
-import { api } from '../../api/client'
 import { useMeta, useUpload } from '../../api/queries'
 import { Icon } from '../../components/Icon'
 import { PageHeading } from '../../components/PageHeading'
@@ -34,12 +33,6 @@ function today(): string {
   return new Date().toLocaleDateString('en-CA')
 }
 
-async function sampleFile(): Promise<File> {
-  const response = await fetch(api.sampleCsvUrl)
-  if (!response.ok) throw new Error('Sample data is unavailable right now.')
-  return new File([await response.text()], 'sample-200-students.csv', { type: 'text/csv' })
-}
-
 export function UploadPage() {
   const navigate = useNavigate()
   const { data: meta } = useMeta()
@@ -57,8 +50,6 @@ export function UploadPage() {
       { file, asOf: today() },
       { onSuccess: (created) => void navigate(`/runs/${created.id}`) },
     )
-
-  const runSample = async () => run(await sampleFile())
 
   const ready =
     selection !== null && selection.check.missing.length === 0 && selection.check.rowCount > 0
@@ -82,16 +73,7 @@ export function UploadPage() {
           </p>
         </PageHeading>
         <div className="hero__actions">
-          <button
-            type="button"
-            className="button button--hero"
-            disabled={upload.isPending}
-            onClick={() => void runSample()}
-          >
-            <Icon name="play" size={18} />
-            {upload.isPending ? 'Running My Path…' : 'Try sample data — 200 students'}
-          </button>
-          <a className="button button--hero-ghost" href="#upload">
+          <a className="button button--hero" href="#upload">
             <Icon name="upload" size={18} /> Upload CSV
           </a>
         </div>
@@ -135,14 +117,6 @@ export function UploadPage() {
             >
               <Icon name="play" size={16} />
               {upload.isPending ? 'Running My Path…' : 'Run My Path'}
-            </button>
-            <button
-              type="button"
-              className="button button--link"
-              disabled={upload.isPending}
-              onClick={() => void runSample()}
-            >
-              Use sample data instead
             </button>
           </div>
         </form>

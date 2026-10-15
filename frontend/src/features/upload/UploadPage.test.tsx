@@ -22,7 +22,7 @@ describe('UploadPage', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: 'Upload student records' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Try sample data/ })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: /sample data/i })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Upload CSV' })).toHaveAttribute('href', '#upload')
     expect(screen.getByRole('button', { name: 'Run My Path' })).toBeDisabled()
     expect(await axe(container)).toHaveNoViolations()
@@ -88,21 +88,5 @@ describe('UploadPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Run My Path' }))
     expect(await screen.findByText('The file needs a few fixes')).toBeInTheDocument()
     expect(screen.getByText('Row 3: bad')).toBeInTheDocument()
-  })
-
-  it('runs the built-in sample in one click and opens the queue', async () => {
-    const { posts } = mockApi([
-      get(/\/meta$/, () => meta),
-      get(/\/sample-data\.csv$/, () => 'student_id,first_name'),
-      post(/\/runs$/, () => ({ ...run, status: 'processing' }), 202),
-      get(/\/runs\/run-1$/, () => run),
-      get(/\/runs\/run-1\/summary$/, () => ({})),
-      get(/\/runs\/run-1\/flags$/, () => []),
-    ])
-    const user = userEvent.setup()
-    const { router } = renderRoute('/')
-    await user.click(await screen.findByRole('button', { name: /Try sample data/ }))
-    await waitFor(() => expect(router.state.location.pathname).toBe('/runs/run-1'))
-    expect(posts()).toHaveLength(1)
   })
 })

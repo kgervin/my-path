@@ -78,5 +78,4 @@ export const api = {
     if (asOf) form.append('as_of', asOf)
     return request<Run>('/runs', { method: 'POST', body: form })
   },
-  sampleCsvUrl: `${BASE}/sample-data.csv`,
 }

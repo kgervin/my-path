@@ -10,6 +10,8 @@ import anthropic
 import httpx2
 import pytest
 
+from my_path.container import build_drafter
+from my_path.core.config import Settings
 from my_path.domain.models import (
     Assessment,
     Barrier,
@@ -241,3 +243,17 @@ async def test_anthropic_drafter_errors(
 ) -> None:
     with pytest.raises(DraftingError, match=match):
         await _drafter(messages).draft(assessment, Language.EN, Tone.WARM)
+
+
+def test_anthropic_drafter_needs_a_key_and_falls_back_to_templates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for name in ("ANTHROPIC_API_KEY", "MY_PATH_ANTHROPIC_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("MY_PATH_DRAFTER", "anthropic")
+    assert isinstance(build_drafter(Settings(_env_file=None)), TemplateDrafter)
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    settings = Settings(_env_file=None)
+    assert isinstance(build_drafter(settings), AnthropicDrafter)
+    assert "test-key" not in repr(settings)
