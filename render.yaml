@@ -27,8 +27,10 @@ services:
         value: production
       - key: MY_PATH_MIGRATE_ON_START # alembic upgrade head before serving (idempotent)
         value: "true"
-      - key: MY_PATH_DRAFTER
-        value: template
+      - key: MY_PATH_DRAFTER # Claude drafts outreach; falls back to templates without a key
+        value: anthropic
+      - key: ANTHROPIC_API_KEY
+        sync: false # set once in the dashboard, never committed
       - key: PORT
         value: "8000"
 
@@ -88,8 +90,10 @@ services:
         value: staging
       - key: MY_PATH_MIGRATE_ON_START # alembic upgrade head before serving (idempotent)
         value: "true"
-      - key: MY_PATH_DRAFTER
-        value: template
+      - key: MY_PATH_DRAFTER # Claude drafts outreach; falls back to templates without a key
+        value: anthropic
+      - key: ANTHROPIC_API_KEY
+        sync: false # set once in the dashboard, never committed
       - key: PORT
         value: "8000"
 
