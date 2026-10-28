@@ -12,7 +12,7 @@ LABEL org.opencontainers.image.title="my-path-web" \
       org.opencontainers.image.licenses="MIT"
 # Apply Alpine security fixes released after the base image was built, then drop back to the
 # image's unprivileged user.
-USER root
+USER 0
 RUN apk upgrade --no-cache
 USER 101
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
