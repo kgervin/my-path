@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'vitest-axe'
 
@@ -37,9 +37,17 @@ describe('UploadPage', () => {
       screen.getByLabelText(/Choose or drop a CSV file/),
       csv('student_id,first_name\nS1,Ana\n'),
     )
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Missing columns: program, drop_date',
-    )
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('students.csv: 1 student.')
+    expect(alert).toHaveTextContent('Missing columns: program, drop_date')
+    // The format guide opens by itself and marks what is missing.
+    const guide = screen.getByText('Required CSV columns').closest('details')
+    expect(guide).toHaveAttribute('open')
+    const dropDate = within(guide as HTMLElement)
+      .getByText('drop_date')
+      .closest('div')
+    expect(dropDate).toHaveTextContent('Missing')
+    expect(dropDate).toHaveTextContent('Date (YYYY-MM-DD) · e.g. 2026-10-01')
     expect(screen.getByRole('button', { name: 'Run My Path' })).toBeDisabled()
     expect(calls.some((c) => c.method === 'POST')).toBe(false)
   })

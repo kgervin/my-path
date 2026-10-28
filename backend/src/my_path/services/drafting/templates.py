@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from datetime import date
 
 from my_path.domain.models import (
     Assessment,
@@ -24,17 +25,35 @@ ACTION_PRIORITY: tuple[Barrier, ...] = (
     Barrier.SILENT_STUDENT,
 )
 
+
+def _short_date(value: str) -> str:
+    """'2026-10-18' -> 'Oct 18', the way coaches write dates. Other values pass through."""
+    try:
+        day = date.fromisoformat(value)
+    except ValueError:
+        return value
+    return f"{day:%b} {day.day}"
+
+
+def _listed(value: str) -> str:
+    return value.replace(";", ", ")
+
+
+# Coach-facing wording. Raw field names stay out of the sentence: the detail page shows each
+# finding's source fields right beside it, so every claim is still traceable.
 _EXPLAIN: dict[Barrier, Callable[[dict[str, str]], str]] = {
-    Barrier.SMALL_BALANCE: lambda f: f"an unpaid balance of ${f['balance_usd']} (balance_usd)",
-    Barrier.REGISTRATION_HOLD: lambda f: f"an active hold {f['hold_codes']} (hold_codes)",
-    Barrier.FAILED_PAYMENT: lambda _: "a failed last payment (last_payment_status)",
+    Barrier.SMALL_BALANCE: lambda f: f"an unpaid balance of ${f['balance_usd']}",
+    Barrier.REGISTRATION_HOLD: lambda f: f"an active hold ({_listed(f['hold_codes'])})",
+    Barrier.FAILED_PAYMENT: lambda _: "a last payment that did not go through",
     Barrier.MISSING_AID_DOCUMENT: lambda f: (
-        f"an outstanding aid item {f['aid_items_missing']} (aid_items_missing)"
+        f"an outstanding aid item ({_listed(f['aid_items_missing'])})"
     ),
     Barrier.SILENT_STUDENT: lambda f: (
-        f"no course login since {f['last_lms_login']} (last_lms_login)"
+        "never logged in to the course"
+        if f["last_lms_login"] == "never"
+        else f"no course login since {_short_date(f['last_lms_login'])}"
     ),
-    Barrier.NOT_REGISTERED_NEXT_TERM: lambda _: "no credits for next term (next_term_credits)",
+    Barrier.NOT_REGISTERED_NEXT_TERM: lambda _: "no classes yet for next term",
 }
 
 _ACTION: dict[Language, dict[Barrier, str]] = {
@@ -87,11 +106,13 @@ def explanation(assessment: Assessment) -> str:
     parts = [_EXPLAIN[f.barrier](f.source_fields) for f in assessment.findings]
     joined = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + f" and {parts[-1]}"
     days = assessment.days_to_drop
-    when = f"{days} days away" if days >= 0 else f"{-days} days ago"
-    return (
-        f"{assessment.record.first_name} has {joined}; the drop date is "
-        f"{assessment.record.drop_date.isoformat()} (drop_date, {when})."
-    )
+    when = "today" if days == 0 else f"in {_days(days)}" if days > 0 else f"{_days(-days)} ago"
+    drop = _short_date(assessment.record.drop_date.isoformat())
+    return f"{assessment.record.first_name} has {joined}. The drop date is {drop}, {when}."
+
+
+def _days(n: int) -> str:
+    return f"{n} day" if n == 1 else f"{n} days"
 
 
 def template_draft(

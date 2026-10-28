@@ -146,8 +146,15 @@ class BarrierInfo(BaseModel):
     routes_to: list[str]
 
 
+class ColumnInfo(BaseModel):
+    name: str
+    format: str
+    example: str
+
+
 class MetaOut(BaseModel):
     required_columns: list[str]
+    columns: list[ColumnInfo]
     barriers: list[BarrierInfo]
     max_upload_bytes: int
     max_words: int

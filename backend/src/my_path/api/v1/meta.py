@@ -8,11 +8,11 @@ from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
 from my_path.api.dependencies import ContainerDep
-from my_path.api.schemas import BarrierInfo, MetaOut
+from my_path.api.schemas import BarrierInfo, ColumnInfo, MetaOut
 from my_path.domain.catalog import catalog
 from my_path.persistence.repository import URGENT_DAYS
 from my_path.services.drafting.guardrails import MAX_WORDS
-from my_path.services.ingestion import REQUIRED_COLUMNS
+from my_path.services.ingestion import COLUMN_GUIDE, REQUIRED_COLUMNS
 from my_path.synthetic import generate
 
 router = APIRouter(tags=["meta"])
@@ -23,6 +23,10 @@ async def meta(container: ContainerDep) -> MetaOut:
     settings = container.settings
     return MetaOut(
         required_columns=list(REQUIRED_COLUMNS),
+        columns=[
+            ColumnInfo(name=c, format=COLUMN_GUIDE[c][0], example=COLUMN_GUIDE[c][1])
+            for c in REQUIRED_COLUMNS
+        ],
         barriers=[
             BarrierInfo(
                 id=e.barrier.value,

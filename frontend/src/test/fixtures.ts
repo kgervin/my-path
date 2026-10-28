@@ -2,6 +2,12 @@ import type { FlagDetail, FlagSummary, Meta, Run, Summary } from '../api/types'
 
 export const meta: Meta = {
   required_columns: ['student_id', 'first_name', 'program', 'drop_date'],
+  columns: [
+    { name: 'student_id', format: 'Text, unique per student', example: 'S0132' },
+    { name: 'first_name', format: 'Text', example: 'Jordan' },
+    { name: 'program', format: 'Text', example: 'BS Nursing' },
+    { name: 'drop_date', format: 'Date (YYYY-MM-DD)', example: '2026-10-01' },
+  ],
   barriers: [
     {
       id: 'failed_payment',

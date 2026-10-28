@@ -225,6 +225,12 @@ async def test_unknown_ids_return_404(client: httpx.AsyncClient) -> None:
 async def test_meta_and_sample_data(client: httpx.AsyncClient) -> None:
     meta = (await client.get("/api/v1/meta")).json()
     assert meta["required_columns"][0] == "student_id"
+    assert [c["name"] for c in meta["columns"]] == meta["required_columns"]
+    assert meta["columns"][4] == {
+        "name": "drop_date",
+        "format": "Date (YYYY-MM-DD)",
+        "example": "2026-10-01",
+    }
     assert len(meta["barriers"]) == 6
     assert "$1,000" in meta["barriers"][0]["description"]
     assert all(b["suggested_fix"] for b in meta["barriers"])

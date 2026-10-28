@@ -90,4 +90,22 @@ describe('QueuePage', () => {
     await user.keyboard('k')
     await waitFor(() => expect(router.state.location.pathname).toBe('/runs/run-1/students/f1'))
   })
+
+  it('turns a missing run into a way forward, not a pointless retry', async () => {
+    mockApi([
+      get(/\/meta$/, () => meta),
+      get(/\/runs\/gone/, () => ({ title: 'Not found', detail: 'No run with id gone.' }), 404),
+    ])
+    renderRoute('/runs/gone')
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent("We couldn't find that review session")
+    expect(alert).not.toHaveTextContent('No run with id')
+    expect(within(alert).getByRole('link', { name: 'latest queue' })).toHaveAttribute(
+      'href',
+      '/queue',
+    )
+    expect(within(alert).getByRole('link', { name: 'upload a CSV' })).toHaveAttribute('href', '/')
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+    expect(document.title).toBe('Not found · My Path')
+  })
 })

@@ -107,16 +107,20 @@ def test_every_template_passes_guardrails(
     assert draft.source is DraftSource.TEMPLATE
 
 
-def test_explanation_cites_fields_and_days(assessment: Assessment) -> None:
+def test_explanation_uses_coach_words_and_dates(assessment: Assessment) -> None:
     text = explanation(assessment)
-    assert "(last_payment_status)" in text
-    assert "(hold_codes)" in text
-    assert "9 days away" in text
+    assert "did not go through" in text
+    assert "an active hold (BURSAR_HOLD)" in text
+    assert "in 9 days" in text
+    assert "_" not in text.replace("BURSAR_HOLD", "")  # no raw field names
+    assert assessment.record.drop_date.strftime("%b") in text
 
 
-def test_explanation_handles_past_drop_date(ctx: RuleContext) -> None:
+def test_explanation_handles_past_and_missing_logins(ctx: RuleContext) -> None:
     late = make_assessment(ctx, hold_codes=("H",), drop_date=date(2026, 9, 20))
     assert "2 days ago" in explanation(late)
+    silent = make_assessment(ctx, **BARRIER_OVERRIDES[Barrier.SILENT_STUDENT])
+    assert "never logged in" in explanation(silent)
 
 
 def test_template_asks_for_one_action_by_priority(assessment: Assessment) -> None:
