@@ -5,7 +5,12 @@ from datetime import date
 import pytest
 
 from my_path.domain.models import Language
-from my_path.services.ingestion import REQUIRED_COLUMNS, CsvValidationError, parse_students
+from my_path.services.ingestion import (
+    COLUMN_GUIDE,
+    REQUIRED_COLUMNS,
+    CsvValidationError,
+    parse_students,
+)
 
 HEADER = ",".join(REQUIRED_COLUMNS)
 PRD_ROW = (
@@ -70,3 +75,7 @@ def test_rejects_non_utf8() -> None:
 def test_rejects_header_only() -> None:
     with pytest.raises(CsvValidationError, match="no student rows"):
         parse_students(_csv(), max_rows=10)
+
+
+def test_every_required_column_has_a_format_guide() -> None:
+    assert list(COLUMN_GUIDE) == list(REQUIRED_COLUMNS)

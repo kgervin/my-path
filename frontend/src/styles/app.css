@@ -779,18 +779,48 @@
     background: var(--color-danger-soft);
     color: var(--color-danger);
   }
-  .columns-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    padding: var(--space-3) 0 0;
-    list-style: none;
-  }
-  .columns-list code {
-    padding: 0.125rem 0.5rem;
-    border-radius: var(--radius-pill);
-    background: var(--color-surface);
+  .column-guide {
+    display: grid;
+    gap: 1px;
+    margin-block-start: var(--space-3);
+    overflow: hidden;
+    background: var(--color-border);
     border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+  .column-guide > div {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface);
+  }
+  @media (min-width: 48rem) {
+    .column-guide > div {
+      grid-template-columns: 14rem 1fr;
+      align-items: baseline;
+    }
+  }
+  .column-guide .is-missing {
+    background: var(--color-danger-soft);
+  }
+  .column-guide dt {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .column-guide dd {
+    color: var(--color-muted);
+    font-size: 0.9375rem;
+  }
+  .column-guide dd code {
+    white-space: nowrap;
+  }
+  .column-guide__flag {
+    color: var(--color-danger);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
   .disclosure summary {
     display: flex;
@@ -866,6 +896,27 @@
   }
   .counter--wide {
     flex: 2 1 12rem;
+  }
+  /* Phones: one compact row, so the student list starts on the first screen. */
+  @media (width < 48rem) {
+    .counters {
+      flex-wrap: nowrap;
+      border-radius: var(--radius-lg);
+    }
+    .counter {
+      flex: 1 1 0;
+      min-inline-size: 0;
+      gap: 0.25rem;
+      padding: var(--space-2);
+    }
+    .counter dt {
+      font-size: 0.625rem;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+    }
+    .counter dd {
+      font-size: 1.375rem;
+    }
   }
 
   /* ---------- Filters & list ---------- */

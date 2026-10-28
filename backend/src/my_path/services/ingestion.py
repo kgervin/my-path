@@ -31,6 +31,22 @@ REQUIRED_COLUMNS: tuple[str, ...] = (
     "preferred_language",
 )
 
+# What each column holds, shown to coaches next to the column list (format, example).
+COLUMN_GUIDE: dict[str, tuple[str, str]] = {
+    "student_id": ("Text, unique per student", "S0132"),
+    "first_name": ("Text", "Jordan"),
+    "program": ("Text", "BS Nursing"),
+    "term_start": ("Date (YYYY-MM-DD)", "2026-08-20"),
+    "drop_date": ("Date (YYYY-MM-DD)", "2026-10-01"),
+    "balance_usd": ("Number, 0 if none", "172.50"),
+    "hold_codes": ("List separated by ; or blank", "REG;BUR"),
+    "last_payment_status": ("Text, e.g. paid or failed", "failed"),
+    "aid_items_missing": ("List separated by ; or blank", "FAFSA-V"),
+    "last_lms_login": ("Date (YYYY-MM-DD), blank if never", "2026-09-10"),
+    "next_term_credits": ("Whole number", "0"),
+    "first_gen": ("true or false", "true"),
+    "preferred_language": ("en or es", "es"),
+}
 _TRUE = {"true", "1", "yes", "y"}
 _FALSE = {"false", "0", "no", "n", ""}
 _MAX_REPORTED_ERRORS = 50

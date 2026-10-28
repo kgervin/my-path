@@ -2,6 +2,7 @@ import { useId, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 
 import { useMeta, useUpload } from '../../api/queries'
+import type { ColumnInfo } from '../../api/types'
 import { Icon } from '../../components/Icon'
 import { PageHeading } from '../../components/PageHeading'
 import { ErrorState } from '../../components/StateViews'
@@ -121,16 +122,7 @@ export function UploadPage() {
           </div>
         </form>
         {meta ? (
-          <details className="disclosure">
-            <summary>Required CSV columns</summary>
-            <ul className="columns-list">
-              {meta.required_columns.map((column) => (
-                <li key={column}>
-                  <code>{column}</code>
-                </li>
-              ))}
-            </ul>
-          </details>
+          <ColumnGuide columns={meta.columns} missing={selection?.check.missing ?? []} />
         ) : null}
       </section>
     </>
@@ -141,21 +133,52 @@ function pluralize(count: number, one: string, many: string): string {
   return count === 1 ? one : many
 }
 
+/** Each column's format and an example; opens by itself when the chosen file is missing some. */
+function ColumnGuide({ columns, missing }: { columns: ColumnInfo[]; missing: string[] }) {
+  return (
+    <details className="disclosure" open={missing.length > 0 || undefined}>
+      <summary>Required CSV columns</summary>
+      <dl className="column-guide">
+        {columns.map((column) => (
+          <div
+            key={column.name}
+            className={missing.includes(column.name) ? 'is-missing' : undefined}
+          >
+            <dt>
+              <code>{column.name}</code>
+              {missing.includes(column.name) ? (
+                <span className="column-guide__flag">Missing</span>
+              ) : null}
+            </dt>
+            <dd>
+              {column.format} · e.g. <code>{column.example}</code>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  )
+}
+
 function ColumnCheck({ selection }: { selection: Selection }) {
   const { file, check } = selection
   const missing = check.missing.length
   const ok = missing === 0 && check.rowCount > 0
   let message = 'All required columns found. Ready to run.'
   if (missing > 0) {
-    message = `Missing ${pluralize(missing, 'column', 'columns')}: ${check.missing.join(', ')}. Add ${pluralize(missing, 'it', 'them')} and choose the file again.`
+    message = `Missing ${pluralize(missing, 'column', 'columns')}: ${check.missing.join(', ')}. Add ${pluralize(missing, 'it', 'them')} using the formats under Required CSV columns, then choose the file again.`
   } else if (check.rowCount === 0) {
     message = 'The file has no student rows.'
   }
   return (
     <div className={ok ? 'check check--ok' : 'check check--error'} role={ok ? 'status' : 'alert'}>
       <p>
-        <Icon name={ok ? 'check' : 'alert'} /> <strong>{file.name}</strong>: {check.rowCount}{' '}
-        {pluralize(check.rowCount, 'student', 'students')}.
+        <Icon name={ok ? 'check' : 'alert'} />
+        {/* One text node group, so the flex gap can't split "name: N students". */}
+        <span>
+          <strong>{file.name}</strong>: {check.rowCount}{' '}
+          {pluralize(check.rowCount, 'student', 'students')}.
+        </span>
       </p>
       <p>{message}</p>
     </div>

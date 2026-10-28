@@ -86,8 +86,15 @@ export interface BarrierInfo {
   routes_to: string[]
 }
 
+export interface ColumnInfo {
+  name: string
+  format: string
+  example: string
+}
+
 export interface Meta {
   required_columns: string[]
+  columns: ColumnInfo[]
   barriers: BarrierInfo[]
   max_upload_bytes: number
   max_words: number

@@ -10,6 +10,11 @@ RUN npm run build
 FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
 LABEL org.opencontainers.image.title="my-path-web" \
       org.opencontainers.image.licenses="MIT"
+# Apply Alpine security fixes released after the base image was built, then drop back to the
+# image's unprivileged user.
+USER 0
+RUN apk upgrade --no-cache
+USER 101
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 ENV API_UPSTREAM=http://api:8000

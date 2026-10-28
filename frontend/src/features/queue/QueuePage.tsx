@@ -34,7 +34,6 @@ export function QueuePage() {
       <QueueHead
         pending={summary.data?.counters.pending}
         scanned={run.data.total_records}
-        shown={list.length}
         runId={runId}
         focus={!flagId}
         filtersOpen={filtersOpen}
@@ -71,7 +70,6 @@ export function queueHeading(pending: number | undefined): string {
 interface HeadProps {
   pending: number | undefined
   scanned: number
-  shown: number
   runId: string
   focus: boolean
   filtersOpen: boolean
@@ -83,7 +81,6 @@ interface HeadProps {
 function QueueHead({
   pending,
   scanned,
-  shown,
   runId,
   focus,
   filtersOpen,
@@ -100,8 +97,7 @@ function QueueHead({
         focusOnMount={focus}
       >
         <p>
-          {scanned} students scanned · {shown} shown ·{' '}
-          <Link to={`/runs/${runId}/summary`}>View summary</Link>
+          {scanned} students scanned · <Link to={`/runs/${runId}/summary`}>View summary</Link>
         </p>
       </PageHeading>
       <button
