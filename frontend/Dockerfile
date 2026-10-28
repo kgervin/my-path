@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # Unprivileged nginx: listens on 8080, runs as uid 101, no root needed.
-FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runtime
 LABEL org.opencontainers.image.title="my-path-web" \
       org.opencontainers.image.licenses="MIT"
 # Apply Alpine security fixes released after the base image was built, then drop back to the
